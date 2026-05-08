@@ -54,7 +54,8 @@ export default function Marketplace() {
         minPrice: 0,
         maxPrice: 50000,
         requiredFacilities: [],
-        preferredType: "Any"
+        preferredType: "Any",
+        noOfRooms: 0
     });
     const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
@@ -75,7 +76,8 @@ export default function Marketplace() {
                 minPrice: 0,
                 maxPrice: 50000,
                 requiredFacilities: [],
-                preferredType: "any"
+                preferredType: "any",
+                noOfRooms: 0
             }).catch(e => console.error("Failed to clear filters on exit:", e));
         };
     }, []);
@@ -215,6 +217,19 @@ export default function Marketplace() {
                                                     <SelectItem value="room_based">Room</SelectItem>
                                                 </SelectContent>
                                             </Select>
+                                        </div>
+
+                                        {/* Number of Rooms */}
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-black uppercase tracking-widest text-slate-400">Number of Rooms</Label>
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                placeholder="e.g., 2"
+                                                value={prefs.noOfRooms || ""}
+                                                onChange={(e) => setPrefs({ ...prefs, noOfRooms: e.target.value })}
+                                                className="h-12 bg-white border-none shadow-sm rounded-xl focus:ring-primary/20"
+                                            />
                                         </div>
 
 

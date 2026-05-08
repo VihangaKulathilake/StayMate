@@ -8,6 +8,7 @@ import Review from "../models/review.js";
 import { isAdmin, isOwnerOrAdmin } from "../utils/authHelpers.js";
 import { normalizeStringArray } from "../utils/formatHelpers.js";
 import { calculateScore } from "../utils/boardingUtils.js";
+import { getRecommendations } from "../services/mlService/mlService.js";
 
 // Create a new boarding
 export const createBoarding = async (req, res) => {
@@ -331,6 +332,7 @@ export const getBoardings = async (req, res) => {
       const bId = String(boarding._id);
       const reviews = reviewStatsByBoarding.get(bId) || { avgRating: 0, totalReviews: 0 };
 
+      // Enrich - Add rating, review count, distance, and room availability info to each boarding
       let enriched = {
         ...boarding,
         rating: reviews.avgRating ? Number(reviews.avgRating.toFixed(1)) : 0,
@@ -359,13 +361,48 @@ export const getBoardings = async (req, res) => {
     } else if (sortBy === "rating") {
       response.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sortBy === "recommended" && preferences) {
-      try {
-        response.sort((a, b) => calculateScore(b, preferences) - calculateScore(a, preferences));
-      } catch (sortErr) {
-        console.error("Sorting recommendation error:", sortErr);
+      // Check if user actually has meaningful preferences set
+      const hasPreferences = (preferences.preferredLocations && preferences.preferredLocations.length > 0) ||
+        (preferences.minPrice > 0) ||
+        (preferences.maxPrice && preferences.maxPrice < 50000) ||
+        (preferences.requiredFacilities && preferences.requiredFacilities.length > 0) ||
+        (preferences.preferredType && preferences.preferredType !== "any");
+
+      if (hasPreferences) {
+        try {
+          const userObj = {
+            rooms: preferences.rooms || 1,
+            distance: preferences.distance || 5,
+            facilities: preferences.requiredFacilities || [],
+          };
+
+          // Foramt the boarding response for the ML function
+          const formattedBoardings = response.map(b => {
+            return {
+              ...b,
+              id: b._id.toString(),
+              number_of_rooms: b.availableRooms || 1,
+              distance_km: b.distance || 0,
+              rating: b.rating || 0,
+            };
+          });
+
+          // Use ML function to sort the boardings
+          const mlResults = await getRecommendations(userObj, formattedBoardings);
+
+          console.log(`Successfully sorted ${mlResults.length} properties using Python ML Model!`);
+
+          return res.json(mlResults);
+
+        } catch (sortErr) {
+          console.error("Sorting recommendation error:", sortErr);
+          // Fallback to all boardings if ML fails
+          return res.json(response);
+        }
       }
     }
 
+    // if no filters or preferences applied return response as is
     return res.json(response);
   } catch (error) {
     console.error(error);

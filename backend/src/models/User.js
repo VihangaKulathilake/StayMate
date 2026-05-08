@@ -49,6 +49,7 @@ const userSchema = mongoose.Schema(
       }],
       minPrice: Number,
       maxPrice: Number,
+      noOfRooms: Number,
       requiredFacilities: [String],
       preferredType: {
         type: String,
