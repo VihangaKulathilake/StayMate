@@ -2,7 +2,8 @@ import axios from "axios";
 
 export async function getRecommendations(user, boardings) {
   try {
-    const response = await axios.post("http://127.0.0.1:8000/recommend", {
+    const mlUrl = process.env.ML_API_URL || "http://127.0.0.1:8000/recommend";
+    const response = await axios.post(mlUrl, {
       user,
       boardings
     });
