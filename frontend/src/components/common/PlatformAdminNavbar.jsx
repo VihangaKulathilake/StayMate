@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, Users, Building2, BarChart3, LogOut, Menu, Search, UserCircle } from "lucide-react";
+import { ShieldCheck, Users, Building2, BarChart3, LogOut, Menu, Search, UserCircle, MessageSquare, Headset } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,7 @@ const links = [
   { name: "Landlords", href: "/admin/landlords", icon: Building2 },
   { name: "Tenants", href: "/admin/tenants", icon: Users },
   { name: "Boardings", href: "/admin/boardings", icon: Building2 },
+  { name: "Support Hub", href: "/contact", icon: Headset },
 ];
 
 export default function PlatformAdminNavbar() {
@@ -51,6 +52,13 @@ export default function PlatformAdminNavbar() {
               className="pl-9 h-9 rounded-full bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-primary/20"
             />
           </div>
+
+          <Link to="/contact">
+            <Button variant="ghost" size="icon" className="relative text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full">
+                <MessageSquare className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+            </Button>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

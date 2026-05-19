@@ -176,7 +176,7 @@ export default function ClientHome() {
                                                 <span className="font-black text-foreground uppercase tracking-widest text-[10px]">Settlement</span>
                                             </Button>
                                         </Link>
-                                        <Link to="/maintenance" className="no-underline">
+                                        <Link to="/contact" className="no-underline">
                                             <Button variant="outline" className="w-full h-auto py-8 flex flex-col gap-4 rounded-[2rem] border-border bg-muted/30 hover:bg-card hover:shadow-xl hover:border-rose-500/20 transition-all group active:scale-95">
                                                 <div className="w-14 h-14 rounded-2xl bg-card text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all shadow-sm">
                                                     <AlertTriangle className="w-7 h-7" />

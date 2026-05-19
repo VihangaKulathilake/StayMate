@@ -17,6 +17,7 @@ export default function Sidebar() {
         { name: "Boardings", href: "/boardings", icon: Building2 },
         { name: "Tenants", href: "/tenants", icon: Users },
         { name: "Payments", href: "/payments", icon: Wallet },
+        { name: "Messages", href: "/contact", icon: Headset },
     ];
 
     return (
@@ -50,7 +51,7 @@ export default function Sidebar() {
                 <div className="bg-slate-50 rounded-2xl p-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Help Center</p>
                     <p className="text-xs text-slate-500 mb-3 leading-relaxed">Need help with managing properties?</p>
-                    <Link to="/support" className="text-xs font-bold text-primary hover:underline no-underline">Contact Support</Link>
+                    <Link to="/contact" className="text-xs font-bold text-primary hover:underline no-underline">Contact Support</Link>
                 </div>
             </div>
         </aside>

@@ -9,7 +9,7 @@ import {
     History,
     LogOut,
     Menu,
-    Wrench
+    MessageSquare
 } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ export default function UserNavbar() {
         { name: "Find Boarding", href: "/marketplace", icon: Search },
         { name: "My Stays", href: "/my-bookings", icon: DoorOpen },
         { name: "Payments", href: "/payments", icon: CreditCard },
-        { name: "Maintenance", href: "/maintenance", icon: Wrench },
+        { name: "Support Hub", href: "/contact", icon: MessageSquare },
     ];
 
     return (

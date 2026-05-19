@@ -10,6 +10,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import ticketRoutes from "./routes/ticketRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -27,6 +28,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/tickets", ticketRoutes);
 
 app.get("/", (req, res) => {
   res.send("API running");

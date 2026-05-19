@@ -15,7 +15,7 @@ import Marketplace from '../pages/client/Marketplace';
 import BoardingDetails from '../pages/client/BoardingDetails';
 import RoomDetails from '../pages/client/RoomDetails';
 import MyBookings from '../pages/client/MyBookings';
-import Maintenance from '../pages/client/Maintenance';
+import ContactHub from '../pages/client/ContactHub';
 import Profile from '../pages/client/Profile';
 import NotFound from '../NotFound';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
@@ -41,7 +41,6 @@ export default function AppRoutes() {
                 <Route path="/boarding/:id" element={<BoardingDetails />} />
                 <Route path="/boarding/:id/room/:roomId" element={<RoomDetails />} />
                 <Route path="/my-bookings" element={<MyBookings />} />
-                <Route path="/maintenance" element={<Maintenance />} />
             </Route>
 
             {/* Admin/Dashboard Routes */}
@@ -60,6 +59,7 @@ export default function AppRoutes() {
 
             <Route element={<ProtectedRoute allowedRoles={["tenant", "landlord", "admin"]} />}>
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/contact" element={<ContactHub />} />
             </Route>
 
             {/* Platform Admin Routes */}

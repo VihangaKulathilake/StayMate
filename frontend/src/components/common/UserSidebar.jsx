@@ -1,25 +1,16 @@
 import React from 'react';
-import {
-    LayoutDashboard,
-    Search,
-    DoorOpen,
-    CreditCard,
-    Wrench,
-    UserCircle,
-    ChevronRight,
-    Home
-} from "lucide-react";
+import { Home, Compass, User, CreditCard, LogOut, MessageSquare, ChevronRight, DoorOpen } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 
 export default function UserSidebar() {
     const menuItems = [
-        { name: "Dashboard", href: "/client-home", icon: LayoutDashboard },
-        { name: "Marketplace", href: "/marketplace", icon: Search },
+        { name: "Dashboard", href: "/client-home", icon: Home },
+        { name: "Marketplace", href: "/marketplace", icon: Compass },
         { name: "My Stays", href: "/my-bookings", icon: DoorOpen },
         { name: "Payments", href: "/payments", icon: CreditCard },
-        { name: "Maintenance", href: "/maintenance", icon: Wrench },
-        { name: "Profile", href: "/profile", icon: UserCircle },
+        { name: "Support Hub", href: "/contact", icon: MessageSquare },
+        { name: "Profile", href: "/profile", icon: User },
     ];
 
     return (
@@ -53,8 +44,8 @@ export default function UserSidebar() {
             <div className="p-4 border-t border-slate-50">
                 <div className="bg-slate-50 rounded-2xl p-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">StayMate Support</p>
-                    <p className="text-xs text-slate-500 mb-3 leading-relaxed">Having issues with your stay? We're here to help.</p>
-                    <NavLink to="/maintenance" className="text-xs font-bold text-blue-600 hover:underline no-underline">Open Support Ticket</NavLink>
+                    <p className="text-xs text-slate-500 mt-1">Need help with your stay? Submit a ticket.</p>
+                    <NavLink to="/contact" className="text-xs font-bold text-blue-600 hover:underline no-underline">Open Support Ticket</NavLink>
                 </div>
             </div>
         </aside>

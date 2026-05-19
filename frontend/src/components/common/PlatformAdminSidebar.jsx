@@ -1,13 +1,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart3, Building2, Users, ChevronRight } from "lucide-react";
+import { BarChart3, Building2, Users, ChevronRight, Headset } from "lucide-react";
 
 const links = [
   { name: "Dashboard", href: "/admin/dashboard", icon: BarChart3 },
   { name: "Landlords", href: "/admin/landlords", icon: Building2 },
   { name: "Tenants", href: "/admin/tenants", icon: Users },
   { name: "Boardings", href: "/admin/boardings", icon: Building2 },
+  { name: "Support Hub", href: "/contact", icon: Headset },
 ];
 
 export default function PlatformAdminSidebar() {
