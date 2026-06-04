@@ -671,3 +671,26 @@ export const rateBoardings = async (req, res) => {
   }
 };
 
+// Get platform-wide stats for landing page (publicly accessible)
+export const getPublicStats = async (req, res) => {
+  try {
+    const [usersCount, boardingsCount, cities, bookingsCount] = await Promise.all([
+      User.countDocuments({ role: { $in: ["tenant", "landlord"] } }),
+      Boarding.countDocuments({ status: "approved" }),
+      Boarding.distinct("city", { status: "approved" }),
+      Booking.countDocuments({ status: "approved" }),
+    ]);
+
+    return res.json({
+      users: usersCount,
+      boardings: boardingsCount,
+      cities: cities.length,
+      bookings: bookingsCount,
+    });
+  } catch (error) {
+    console.error("GET_PUBLIC_STATS_ERROR:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+

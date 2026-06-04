@@ -1,39 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, Home, MapPin, Smile } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-
-const stats = [
-    {
-        label: "Registered Users",
-        value: "10,000+",
-        icon: Users,
-        color: "text-blue-600",
-        bgColor: "bg-blue-50"
-    },
-    {
-        label: "Boarding Houses",
-        value: "500+",
-        icon: Home,
-        color: "text-rose-600",
-        bgColor: "bg-rose-50"
-    },
-    {
-        label: "Cities Covered",
-        value: "25+",
-        icon: MapPin,
-        color: "text-emerald-600",
-        bgColor: "bg-emerald-50"
-    },
-    {
-        label: "Happy Tenants",
-        value: "8,500+",
-        icon: Smile,
-        color: "text-amber-600",
-        bgColor: "bg-amber-50"
-    }
-];
+import { getPublicStats } from "@/api/boardings";
 
 export default function StatsSection() {
+    const [realStats, setRealStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await getPublicStats();
+                setRealStats(data);
+            } catch (error) {
+                console.error("Failed to fetch public stats:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    const stats = [
+        {
+            label: "Registered Users",
+            value: loading ? "..." : (realStats?.users ?? "10,000+"),
+            icon: Users,
+            color: "text-blue-600",
+            bgColor: "bg-blue-50"
+        },
+        {
+            label: "Boarding Houses",
+            value: loading ? "..." : (realStats?.boardings ?? "500+"),
+            icon: Home,
+            color: "text-rose-600",
+            bgColor: "bg-rose-50"
+        },
+        {
+            label: "Cities Covered",
+            value: loading ? "..." : (realStats?.cities ?? "25+"),
+            icon: MapPin,
+            color: "text-emerald-600",
+            bgColor: "bg-emerald-50"
+        },
+        {
+            label: "Happy Tenants",
+            value: loading ? "..." : (realStats?.bookings ?? "8,500+"),
+            icon: Smile,
+            color: "text-amber-600",
+            bgColor: "bg-amber-50"
+        }
+    ];
+
     return (
         <section className="py-24 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 relative z-10">
@@ -54,3 +72,4 @@ export default function StatsSection() {
         </section>
     );
 }
+

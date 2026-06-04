@@ -86,3 +86,13 @@ export const getAdminStats = async () => {
     throw toApiError(error, "Failed to fetch admin statistics.");
   }
 };
+
+export const getPublicStats = async () => {
+  try {
+    const { data } = await axiosInstance.get(`${BOARDINGS_BASE}/public/stats`);
+    return data;
+  } catch (error) {
+    throw toApiError(error, "Failed to fetch public statistics.");
+  }
+};
+

@@ -2,6 +2,7 @@ import React from 'react';
 import LandingNavbar from '../../components/common/LandingNavbar';
 import HeroSection from '../../components/landing/HeroSection';
 import StatsSection from '../../components/landing/StatsSection';
+import FeaturedBoardingsSection from '../../components/landing/FeaturedBoardingsSection';
 import FeaturesSection from '../../components/landing/FeaturesSection';
 import HowItWorksSection from '../../components/landing/HowItWorksSection';
 import BenefitsSection from '../../components/landing/BenefitsSection';
@@ -16,6 +17,7 @@ export default function LandingPage() {
             <main>
                 <HeroSection />
                 <StatsSection />
+                <FeaturedBoardingsSection />
                 <FeaturesSection />
                 <HowItWorksSection />
                 <BenefitsSection />
@@ -25,3 +27,4 @@ export default function LandingPage() {
         </div>
     );
 }
+

@@ -6,11 +6,13 @@ import {
   getBoardings,
   updateBoarding,
   getAdminStats,
+  getPublicStats,
 } from "../controllers/boardingController.js";
 import { authorizeRoles, protect, optionalProtect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+router.get("/public/stats", getPublicStats);
 router.get("/admin/stats", protect, authorizeRoles("admin"), getAdminStats);
 
 router
