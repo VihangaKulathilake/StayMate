@@ -58,16 +58,18 @@ export default function RoomDetails() {
 
     if (isLoading) {
         return (
-            <div className="bg-slate-50 min-h-screen font-sans flex flex-col items-center justify-center">
+            <div className="bg-slate-50 min-h-screen font-sans flex flex-col">
                 <UserNavbar />
-                <motion.div
-                    animate={{ scale: [0.98, 1.02, 0.98], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="flex flex-col items-center gap-6"
-                >
-                    <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-black tracking-[0.2em] text-sm uppercase">Loading Room Details</p>
-                </motion.div>
+                <div className="flex-grow flex flex-col items-center justify-center">
+                    <motion.div
+                        animate={{ scale: [0.98, 1.02, 0.98], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="flex flex-col items-center gap-6"
+                    >
+                        <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <p className="text-slate-400 font-black tracking-[0.2em] text-sm uppercase">Loading Room Details</p>
+                    </motion.div>
+                </div>
             </div>
         );
     }

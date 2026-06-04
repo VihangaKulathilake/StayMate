@@ -139,29 +139,33 @@ export default function BoardingDetails() {
     };
 
     if (loading) return (
-        <div className="bg-slate-50 min-h-screen font-sans flex flex-col items-center justify-center">
+        <div className="bg-slate-50 min-h-screen font-sans flex flex-col">
             <UserNavbar />
-            <motion.div
-                animate={{ scale: [0.98, 1.02, 0.98], opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="flex flex-col items-center gap-6"
-            >
-                <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                <p className="text-slate-400 font-black tracking-[0.2em] text-sm uppercase">Loading Property Data</p>
-            </motion.div>
+            <div className="flex-1 flex flex-col items-center justify-center">
+                <motion.div
+                    animate={{ scale: [0.98, 1.02, 0.98], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    className="flex flex-col items-center gap-6"
+                >
+                    <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                    <p className="text-slate-400 font-black tracking-[0.2em] text-sm uppercase">Loading Property Data</p>
+                </motion.div>
+            </div>
         </div>
     );
 
     if (!boarding) return (
-        <div className="bg-slate-50 min-h-screen font-sans flex flex-col items-center justify-center">
+        <div className="bg-slate-50 min-h-screen font-sans flex flex-col">
             <UserNavbar />
-            <div className="text-center space-y-4">
-                <Home className="w-16 h-16 text-slate-300 mx-auto" />
-                <h2 className="text-2xl font-black text-slate-900">Property Not Found</h2>
-                <div className="h-2"></div>
-                <Link to="/marketplace">
-                    <Button className="rounded-xl font-bold px-8">Return to Marketplace</Button>
-                </Link>
+            <div className="flex-1 flex flex-col items-center justify-center">
+                <div className="text-center space-y-4">
+                    <Home className="w-16 h-16 text-slate-300 mx-auto" />
+                    <h2 className="text-2xl font-black text-slate-900">Property Not Found</h2>
+                    <div className="h-2"></div>
+                    <Link to="/marketplace">
+                        <Button className="rounded-xl font-bold px-8">Return to Marketplace</Button>
+                    </Link>
+                </div>
             </div>
         </div>
     );
