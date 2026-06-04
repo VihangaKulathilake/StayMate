@@ -27,3 +27,12 @@ export const logoutUser = async () => {
     throw toApiError(error, "Logout failed.");
   }
 };
+
+export const googleLogin = async (credential) => {
+  try {
+    const response = await axiosInstance.post("/auth/google", { credential });
+    return response.data;
+  } catch (error) {
+    throw toApiError(error, "Google login failed.");
+  }
+};

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { GoogleLogin } from "@react-oauth/google";
 import {
   Home,
   Mail,
@@ -11,7 +12,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
-import { loginUser } from "@/api/auth";
+import { loginUser, googleLogin } from "@/api/auth";
 import { LOGIN_MESSAGES, getLoginErrorMessage } from "@/messages/authMessages";
 import AuthStatusMessage from "@/components/common/AuthStatusMessage";
 import { getDefaultRouteByRole, saveAuthSession } from "@/lib/auth";
@@ -274,23 +275,30 @@ export default function Login() {
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 rounded-2xl gap-3 font-bold border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-all"
-              >
-                <Chrome className="w-5 h-5 text-rose-500" />
-                Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 rounded-2xl gap-3 font-bold border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-all"
-              >
-                <Facebook className="w-5 h-5 text-blue-600 fill-blue-600" />
-                Facebook
-              </Button>
+            <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4">
+              <div className="flex justify-center w-full">
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    setError("");
+                    setIsSubmitting(true);
+                    try {
+                      const data = await googleLogin(credentialResponse.credential);
+                      saveAuthSession({ token: data.token, user: data.user });
+                      const userRole = data?.user?.role;
+                      const redirectPath = getDefaultRouteByRole(userRole);
+                      navigate(redirectPath, { replace: true });
+                    } catch (err) {
+                      setError(err.message || "Google Authentication failed");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  onError={() => {
+                    setError("Google Sign-In failed. Please try again.");
+                  }}
+                  width="384px" /* Fits the container width */
+                />
+              </div>
             </motion.div>
 
             <motion.p variants={itemVariants} className="text-center pt-6 text-slate-500 font-medium">
