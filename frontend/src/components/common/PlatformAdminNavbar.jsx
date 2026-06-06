@@ -44,14 +44,6 @@ export default function PlatformAdminNavbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden md:block relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              type="search"
-              placeholder="Search users, properties..."
-              className="pl-9 h-9 rounded-full bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-primary/20"
-            />
-          </div>
 
           <Link to="/contact">
             <Button variant="ghost" size="icon" className="relative text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full">

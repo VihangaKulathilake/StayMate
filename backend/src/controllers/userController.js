@@ -15,10 +15,10 @@ export const getCurrentUserProfile = async (req, res) => {
   }
 };
 
-// PUT /api/users/me - Update logged-in user's name or email
+// PUT /api/users/me - Update logged-in user's profile details
 export const updateCurrentUserProfile = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, phone, address, isVerified } = req.body;
 
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -45,6 +45,18 @@ export const updateCurrentUserProfile = async (req, res) => {
       user.email = emailLower;
     }
 
+    if (phone !== undefined) {
+      user.phone = phone.trim();
+    }
+
+    if (address !== undefined) {
+      user.address = address.trim();
+    }
+
+    if (isVerified !== undefined) {
+      user.isVerified = !!isVerified;
+    }
+
     await user.save();
 
     return res.json({
@@ -54,6 +66,9 @@ export const updateCurrentUserProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        address: user.address,
+        isVerified: user.isVerified,
       },
     });
   } catch (error) {

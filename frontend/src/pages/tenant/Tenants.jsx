@@ -109,10 +109,6 @@ export default function Tenants() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-               <div className="relative group hidden sm:block">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                  <Input placeholder="Find property or tenant..." className="h-12 pl-12 pr-4 rounded-2xl border-none bg-white shadow-lg shadow-slate-200/50 w-64 font-bold" />
-               </div>
               <Link to="/tenants/add" className="no-underline">
                 <Button className="h-12 px-8 rounded-2xl bg-slate-900 text-white font-black shadow-xl hover:shadow-indigo-200 transition-all active:scale-95">
                   <Plus className="w-5 h-5 mr-3" /> Manual Onboard
@@ -203,18 +199,6 @@ export default function Tenants() {
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Alerts</p>
                        </div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                       <Button className="flex-1 h-14 rounded-2xl bg-indigo-600 text-white font-black hover:bg-indigo-700 transition-all shadow-lg active:scale-95 group/btn">
-                          Property Queue <ArrowUpRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                       </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl border-slate-100 hover:bg-slate-50">
-                          <Mail className="w-5 h-5 text-slate-400" />
-                       </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl border-slate-100 hover:bg-slate-50">
-                          <MoreHorizontal className="w-5 h-5 text-slate-400" />
-                       </Button>
-                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -237,11 +221,6 @@ export default function Tenants() {
                      <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-sm">
                         Detailed tenant identities and platform-wide screening records are managed in the Global Directory.
                      </p>
-                  </div>
-                  <div className="pt-12 relative z-10">
-                     <Button className="h-14 px-10 rounded-2xl bg-white text-slate-900 font-black hover:bg-slate-100 transition-all shadow-xl group/btn2">
-                        Open Global Directory <ChevronRight className="w-5 h-5 ml-2 group-hover/btn2:translate-x-1 transition-transform" />
-                     </Button>
                   </div>
                </Card>
             </motion.div>

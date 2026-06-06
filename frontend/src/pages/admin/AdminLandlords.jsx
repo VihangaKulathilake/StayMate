@@ -108,28 +108,16 @@ export default function AdminLandlords() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button className="h-14 px-8 rounded-[1.25rem] bg-slate-900 text-white font-black shadow-xl hover:shadow-violet-200 transition-all active:scale-95 w-full sm:w-auto">
-                <UserPlus className="w-5 h-5 mr-3" /> Register Landlord
-              </Button>
             </div>
           </motion.div>
 
           {/* Controls Bar */}
           <div className="flex items-center justify-between bg-white p-4 rounded-[1.5rem] shadow-sm border border-slate-50">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-violet-600 bg-violet-50">
+              <span className="px-4 rounded-xl font-black text-[10px] uppercase tracking-widest text-violet-600 bg-violet-50 py-2">
                 All Providers ({landlordsList.length})
-              </Button>
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-600">
-                Pending Review ({landlordsList.filter(l => l.status === 'pending').length || 0})
-              </Button>
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-600">
-                Suspended ({landlordsList.filter(l => l.status === 'suspended').length || 0})
-              </Button>
+              </span>
             </div>
-            <Button variant="ghost" className="rounded-xl flex items-center gap-2 text-slate-400 font-bold">
-              <Filter className="w-4 h-4" /> Filter <ChevronDown className="w-4 h-4" />
-            </Button>
           </div>
 
           {/* Directory List */}
@@ -222,10 +210,6 @@ export default function AdminLandlords() {
                   <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Growth</p>
                   <p className="text-4xl font-black">+{landlordsList.filter(l => new Date(l.createdAt) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}</p>
                 </div>
-                <div className="w-px h-12 bg-white/10 hidden sm:block"></div>
-                <Button className="h-14 px-8 rounded-2xl bg-white text-indigo-600 hover:bg-slate-50 font-black shadow-xl">
-                  Export Registry (CSV)
-                </Button>
               </div>
             </div>
           </motion.div>

@@ -38,6 +38,17 @@ const staggerContainer = {
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
 
+const calculateCompletion = (user) => {
+    if (!user) return 0;
+    let score = 0;
+    if (user.name) score += 20;
+    if (user.email) score += 20;
+    if (user.phone) score += 20;
+    if (user.address) score += 20;
+    if (user.isVerified) score += 20;
+    return score;
+};
+
 export default function ClientHome() {
     const [stats, setStats] = React.useState({
         user: null,
@@ -84,6 +95,8 @@ export default function ClientHome() {
         }
     };
 
+    const completionScore = calculateCompletion(stats.user);
+
     return (
         <div className="bg-background min-h-screen font-sans flex flex-col">
             <UserNavbar />
@@ -114,9 +127,9 @@ export default function ClientHome() {
                         className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"
                     >
                         {[
-                            { label: "Current Stay", val: stats.activeBooking?.room?.roomNumber || stats.activeBooking?.boarding?.boardingName || "None", sub: stats.activeBooking?.status || "In Search", icon: Home, bg: "bg-blue-50", text: "text-blue-600" },
-                            { label: "Next Payment", val: `Rs. ${stats.activeBooking?.room?.price?.toLocaleString() || stats.activeBooking?.boarding?.price?.toLocaleString() || '0'}`, sub: "Monthly Due", icon: Wallet, bg: "bg-amber-50", text: "text-amber-600" },
-                            { label: "Status", val: stats.activeBooking?.status || "None", sub: "Application State", icon: MessageSquare, bg: "bg-indigo-50", text: "text-indigo-600" }
+                          { label: "Current Stay", val: stats.activeBooking?.room?.roomNumber ? `RM ${stats.activeBooking.room.roomNumber}` : stats.activeBooking?.boarding?.boardingName || "None", sub: stats.activeBooking ? (stats.activeBooking.status === 'approved' ? "Approved Lease" : "Pending Approval") : "In Search", icon: Home, bg: "bg-blue-50", text: "text-blue-600" },
+                          { label: "Next Payment", val: stats.activeBooking ? `Rs. ${(stats.activeBooking.room?.price || stats.activeBooking.boarding?.price || 0).toLocaleString()}` : "Rs. 0", sub: "Monthly Due", icon: Wallet, bg: "bg-amber-50", text: "text-amber-600" },
+                          { label: "Status", val: stats.activeBooking ? (stats.activeBooking.status === 'approved' ? "Active" : "Pending") : "None", sub: "Application State", icon: MessageSquare, bg: "bg-indigo-50", text: "text-indigo-600" }
                         ].map((stat, i) => (
                             <motion.div key={i} variants={fadeIn}>
                                 <Card className="border-none shadow-sm hover:shadow-2xl transition-all duration-500 group overflow-hidden bg-white rounded-[2.5rem]">
@@ -127,7 +140,7 @@ export default function ClientHome() {
                                         <div>
                                             <p className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest mb-1">{stat.label}</p>
                                             <h3 className="text-2xl font-black text-foreground tracking-tight">{stat.val}</h3>
-                                            {stat.sub === "Active Lease" ? (
+                                            {stat.sub === "Approved Lease" ? (
                                                 <Badge className="mt-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-none font-black px-3 py-1 text-[10px] uppercase tracking-widest">
                                                     {stat.sub}
                                                 </Badge>
@@ -195,7 +208,6 @@ export default function ClientHome() {
                                         <CardTitle className="text-2xl font-black text-foreground tracking-tight">Timeline</CardTitle>
                                         <CardDescription className="text-muted-foreground font-medium">Recent events across your stay.</CardDescription>
                                     </div>
-                                    <Button variant="ghost" className="font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5 rounded-xl">Full Audit Log</Button>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <div className="divide-y divide-border">
@@ -232,63 +244,85 @@ export default function ClientHome() {
                                             <TrendingUp className="w-5 h-5" />
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Trust Factor</span>
                                         </div>
-                                        <h3 className="text-3xl font-black leading-tight tracking-tight">Expand Your Trust Score</h3>
+                                        <h3 className="text-3xl font-black leading-tight tracking-tight">
+                                            {stats.user?.isVerified ? "Identity Verified" : "Expand Your Trust Score"}
+                                        </h3>
                                         <p className="text-muted-foreground font-medium leading-relaxed">
-                                            Verified tenants are 6x more likely to secure premium properties.
+                                            {stats.user?.isVerified 
+                                                ? "Your identity is fully verified. You have maximum credibility." 
+                                                : "Verified tenants are 6x more likely to secure premium properties."}
                                         </p>
                                     </div>
                                     <div className="space-y-4">
                                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                                             <span className="text-muted-foreground/50 tracking-[0.2em]">Completion</span>
-                                            <span className="text-foreground">70%</span>
+                                            <span className="text-foreground">{completionScore}%</span>
                                         </div>
                                         <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
-                                                animate={{ width: "70%" }}
+                                                animate={{ width: `${completionScore}%` }}
                                                 transition={{ duration: 1, delay: 0.6 }}
                                                 className="absolute top-0 left-0 h-full bg-primary"
                                             />
                                         </div>
                                     </div>
-                                    <Link to="/profile" className="no-underline block">
-                                        <Button className="w-full h-14 rounded-2xl bg-primary text-white hover:opacity-90 font-black text-xs uppercase tracking-widest shadow-xl">
-                                            Verify My Identity
-                                        </Button>
-                                    </Link>
+                                    {!stats.user?.isVerified && (
+                                        <Link to="/profile" className="no-underline block">
+                                            <Button className="w-full h-14 rounded-2xl bg-primary text-white hover:opacity-90 font-black text-xs uppercase tracking-widest shadow-xl">
+                                                Verify My Identity
+                                            </Button>
+                                        </Link>
+                                    )}
                                 </CardContent>
                             </Card>
 
                             {/* Current Space Details */}
-                            <Card className="border border-border shadow-sm overflow-hidden bg-card rounded-[3rem]">
-                                <CardHeader className="p-8 pb-0">
-                                    <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">Your Current Residence</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-8 space-y-10">
-                                    <div className="flex gap-6">
-                                        <div className="w-20 h-20 rounded-[1.5rem] bg-muted/30 text-muted-foreground/30 flex items-center justify-center shrink-0 border border-border">
-                                            <Home className="w-10 h-10" />
-                                        </div>
-                                        <div className="flex flex-col justify-center gap-1">
-                                            <h4 className="font-black text-xl text-foreground leading-tight">Sunset Villa, RM 302</h4>
-                                            <div className="flex items-center gap-2 text-muted-foreground/50 font-bold text-xs">
-                                                <MapPin className="w-3.5 h-3.5 text-primary" />
-                                                123 Palm Ave, CA
+                            {stats.activeBooking ? (
+                                <Card className="border border-border shadow-sm overflow-hidden bg-card rounded-[3rem]">
+                                    <CardHeader className="p-8 pb-0">
+                                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">Your Current Residence</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-8 space-y-10">
+                                        <div className="flex gap-6">
+                                            <div className="w-20 h-20 rounded-[1.5rem] bg-muted/30 text-muted-foreground/30 flex items-center justify-center shrink-0 border border-border">
+                                                <Home className="w-10 h-10" />
+                                            </div>
+                                            <div className="flex flex-col justify-center gap-1">
+                                                <h4 className="font-black text-xl text-foreground leading-tight">
+                                                    {stats.activeBooking.boarding?.boardingName}
+                                                    {stats.activeBooking.room ? `, RM ${stats.activeBooking.room.roomNumber}` : ""}
+                                                </h4>
+                                                <div className="flex items-center gap-2 text-muted-foreground/50 font-bold text-xs">
+                                                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                                                    {stats.activeBooking.boarding?.address || "Location Hidden"}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <Link to="/my-bookings" className="no-underline">
-                                            <Button variant="outline" className="w-full h-12 rounded-2xl border-border font-black text-[10px] uppercase tracking-widest hover:bg-muted/30 transition-all">
-                                                Manage Residency
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <Link to="/my-bookings" className="no-underline">
+                                                <Button variant="outline" className="w-full h-12 rounded-2xl border-border font-black text-[10px] uppercase tracking-widest hover:bg-muted/30 transition-all">
+                                                    Manage Residency
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <Card className="border border-border shadow-sm overflow-hidden bg-card rounded-[3rem]">
+                                    <CardHeader className="p-8 pb-0">
+                                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">Your Current Residence</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-8 space-y-6">
+                                        <p className="text-muted-foreground font-medium text-sm">You do not have an active booking or residence currently.</p>
+                                        <Link to="/marketplace" className="no-underline block">
+                                            <Button className="w-full h-12 rounded-2xl bg-primary text-white hover:opacity-90 font-black text-xs uppercase tracking-widest shadow-xl">
+                                                Explore Marketplace
                                             </Button>
                                         </Link>
-                                        <Button variant="ghost" className="w-full h-12 text-muted-foreground/50 font-black text-[10px] uppercase tracking-widest hover:text-primary transition-colors">
-                                            Contact Manager
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            )}
                         </motion.div>
                     </div>
                 </main>

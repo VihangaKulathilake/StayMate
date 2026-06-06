@@ -287,9 +287,6 @@ export default function Boardings() {
                 </div>
               </div>
             </div>
-            <Button className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-black shadow-xl relative z-10 w-full lg:w-auto">
-              Platform Audit Report
-            </Button>
           </motion.div>
         </main>
       </div>

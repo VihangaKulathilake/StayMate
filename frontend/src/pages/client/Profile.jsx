@@ -224,6 +224,8 @@ export default function Profile() {
     const [editMode, setEditMode] = useState(false);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [address, setAddress] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileAlert, setProfileAlert] = useState(null);
 
@@ -244,10 +246,14 @@ export default function Profile() {
                 setUser(data);
                 setName(data.name || '');
                 setEmail(data.email || '');
+                setPhone(data.phone || '');
+                setAddress(data.address || '');
             } catch {
                 setUser(authUser);
                 setName(authUser?.name || '');
                 setEmail(authUser?.email || '');
+                setPhone(authUser?.phone || '');
+                setAddress(authUser?.address || '');
             } finally {
                 setLoadingUser(false);
             }
@@ -262,13 +268,40 @@ export default function Profile() {
         setSavingProfile(true);
         setProfileAlert(null);
         try {
-            const result = await updateMe({ name: name.trim(), email: email.trim() });
+            const result = await updateMe({ 
+                name: name.trim(), 
+                email: email.trim(),
+                phone: phone.trim(),
+                address: address.trim()
+            });
             saveAuthSession({ user: result.user });
             setUser(prev => ({ ...prev, ...result.user }));
             setEditMode(false);
             setProfileAlert({ type: 'success', message: 'Profile updated successfully!' });
         } catch (err) {
             setProfileAlert({ type: 'error', message: err.message || 'Failed to update profile.' });
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
+    const handleVerifyIdentity = async () => {
+        if (!phone.trim() || !address.trim()) {
+            setProfileAlert({ 
+                type: 'error', 
+                message: 'Please complete your phone number and address before verifying identity.' 
+            });
+            return;
+        }
+        setSavingProfile(true);
+        setProfileAlert(null);
+        try {
+            const result = await updateMe({ isVerified: true });
+            saveAuthSession({ user: result.user });
+            setUser(prev => ({ ...prev, ...result.user }));
+            setProfileAlert({ type: 'success', message: 'Identity verified successfully!' });
+        } catch (err) {
+            setProfileAlert({ type: 'error', message: err.message || 'Verification failed.' });
         } finally {
             setSavingProfile(false);
         }
@@ -293,7 +326,14 @@ export default function Profile() {
     };
 
     const handleLogout = () => { clearAuthSession(); navigate('/login', { replace: true }); };
-    const handleCancelEdit = () => { setName(user?.name || ''); setEmail(user?.email || ''); setEditMode(false); setProfileAlert(null); };
+    const handleCancelEdit = () => { 
+        setName(user?.name || ''); 
+        setEmail(user?.email || ''); 
+        setPhone(user?.phone || '');
+        setAddress(user?.address || '');
+        setEditMode(false); 
+        setProfileAlert(null); 
+    };
 
     const initials = (user?.name || authUser?.name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—';
@@ -491,6 +531,28 @@ export default function Profile() {
                                             />
                                         </div>
                                         <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone Number</label>
+                                            <FloatingInput
+                                                label="Phone"
+                                                value={phone}
+                                                onChange={e => setPhone(e.target.value)}
+                                                disabled={!editMode}
+                                                placeholder="e.g. +94 77 123 4567"
+                                                autoComplete="tel"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Address</label>
+                                            <FloatingInput
+                                                label="Address"
+                                                value={address}
+                                                onChange={e => setAddress(e.target.value)}
+                                                disabled={!editMode}
+                                                placeholder="Your address"
+                                                autoComplete="street-address"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</label>
                                             <div className="h-14 bg-slate-50 rounded-2xl px-5 flex items-center border border-slate-100">
                                                 <Badge className={`${config.badgeBg} font-black px-3 py-1 rounded-lg text-xs border-none`}>
@@ -534,7 +596,6 @@ export default function Profile() {
                             </div>
                         </Card>
 
-                        {/* Quick actions */}
                         <motion.div
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -543,7 +604,9 @@ export default function Profile() {
                         >
                             {[
                                 { icon: KeyRound, label: 'Change Password', action: () => setActiveTab('password'), color: 'text-amber-600 bg-amber-50 hover:bg-amber-100' },
-                                { icon: Shield, label: 'Account Verified', action: null, color: 'text-emerald-600 bg-emerald-50', disabled: true },
+                                user?.isVerified
+                                    ? { icon: ShieldCheck, label: 'Account Verified', action: null, color: 'text-emerald-600 bg-emerald-50', disabled: true }
+                                    : { icon: Shield, label: 'Verify Identity', action: handleVerifyIdentity, color: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100', disabled: false },
                                 { icon: LogOut, label: 'Sign Out', action: handleLogout, color: 'text-rose-500 bg-rose-50 hover:bg-rose-100' },
                             ].map(({ icon: Icon, label, action, color, disabled }) => (
                                 <motion.button

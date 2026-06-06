@@ -113,15 +113,7 @@ export default function Payments() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="relative group hidden sm:block">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
-                <Input placeholder="Search invoices..." className="h-12 pl-12 pr-4 rounded-2xl border-none bg-white shadow-lg shadow-slate-200/50 w-64 font-bold" />
-              </div>
-              <Button className="h-12 px-6 rounded-2xl bg-slate-900 text-white font-black shadow-xl hover:shadow-emerald-200 transition-all active:scale-95">
-                <Download className="w-5 h-5 mr-3" /> Export Ledger
-              </Button>
-            </div>
+
           </motion.div>
 
           {/* Revenue Cards */}
@@ -130,12 +122,11 @@ export default function Payments() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
             {[
-              { label: role === 'tenant' ? "Total Paid" : "Total Collected", val: `Rs. ${summary.collected.toLocaleString()}`, growth: role === 'tenant' ? "Settled" : "+12.4%", icon: CheckCircle2, bg: "bg-emerald-50", text: "text-emerald-600" },
-              { label: role === 'tenant' ? "Outstanding Dues" : "Pending Funds", val: `Rs. ${summary.pending.toLocaleString()}`, growth: "Review Required", icon: Clock3, bg: "bg-amber-50", text: "text-amber-600" },
-              { label: role === 'tenant' ? "Next Bill Estimate" : "Overdue Leases", val: "Rs. 0", growth: "Safe", icon: AlertTriangle, bg: "bg-slate-50", text: "text-slate-400" },
+              { label: role === 'tenant' ? "Total Paid" : "Total Collected", val: `Rs. ${summary.collected.toLocaleString()}`, growth: role === 'tenant' ? "Settled" : "Completed", icon: CheckCircle2, bg: "bg-emerald-50", text: "text-emerald-600" },
+              { label: role === 'tenant' ? "Outstanding Dues" : "Pending Funds", val: `Rs. ${summary.pending.toLocaleString()}`, growth: role === 'tenant' ? "Outstanding" : "Pending", icon: Clock3, bg: "bg-amber-50", text: "text-amber-600" },
             ].map((stat, i) => (
               <motion.div key={i} variants={itemVariants}>
                 <Card className="rounded-[2.5rem] border-0 shadow-lg shadow-slate-200/40 bg-white p-8 group hover:shadow-2xl transition-all duration-500">
@@ -161,9 +152,7 @@ export default function Payments() {
                 <CardTitle className="text-3xl font-black text-slate-900 tracking-tight">Recent Invoices</CardTitle>
                 <CardDescription className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Audit-ready transaction history {role === 'tenant' ? 'for your leases' : 'across assets'}</CardDescription>
               </div>
-              <Button variant="ghost" className="rounded-xl flex items-center gap-2 text-slate-400 font-bold">
-                <Filter className="w-4 h-4" /> Filter <ChevronDown className="w-3 h-3" />
-              </Button>
+
             </CardHeader>
             <CardContent className="p-0 px-10 pb-10">
               <motion.div
@@ -245,61 +234,9 @@ export default function Payments() {
                   </motion.div>
                 ))}
               </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                className="mt-8 rounded-3xl bg-slate-50 p-6 flex flex-col sm:flex-row items-center justify-between gap-6"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-amber-500">
-                    <AlertTriangle className="w-5 h-5" />
-                  </div>
-                  <p className="text-sm font-bold text-slate-600">Detailed account-level ledger history is optimized in the Admin Console.</p>
-                </div>
-                <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-200 text-slate-900 font-bold whitespace-nowrap">
-                  Platform Audit Report
-                </Button>
-              </motion.div>
-            </CardContent>
-          </Card>
-
-          {/* Collection Health Widget - Landlords Only */}
-          {role !== 'tenant' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="rounded-[3rem] bg-slate-900 p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-600/20 rounded-full blur-3xl -mr-40 -mt-40"></div>
-              <div className="space-y-6 relative z-10 max-w-md">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-6 h-6 text-emerald-400" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">Asset Efficiency</span>
-                </div>
-                <h3 className="text-4xl font-black tracking-tight leading-none">Yield Optimization</h3>
-                <p className="text-slate-400 font-medium text-lg leading-relaxed">
-                  Your current collection velocity is <span className="text-white font-bold">82%</span>. Automation of overdue triggers can improve this by roughly <span className="text-emerald-400 font-bold">14.2%</span>.
-                </p>
-              </div>
-              <div className="w-full lg:w-auto bg-white/5 backdrop-blur-md p-10 rounded-[2.5rem] border border-white/5 relative z-10">
-                <div className="space-y-8">
-                  <div className="flex items-center justify-between gap-20">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Benchmark</span>
-                    <span className="text-2xl font-black">95.0%</span>
-                  </div>
-                  <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 w-[82%]"></div>
-                  </div>
-                  <Button className="w-full h-14 rounded-2xl bg-white text-slate-900 font-black hover:bg-slate-100 shadow-2xl group flex items-center justify-center gap-3">
-                    Optimize Collection Flow <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </main>
+             </CardContent>
+           </Card>
+         </main>
       </div>
       {payModalOpen && selectedPayment && (
         <PayModal 

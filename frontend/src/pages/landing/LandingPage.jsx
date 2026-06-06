@@ -8,13 +8,11 @@ import HowItWorksSection from '../../components/landing/HowItWorksSection';
 import BenefitsSection from '../../components/landing/BenefitsSection';
 import CTASection from '../../components/landing/CTASection';
 
-import { Button } from "@/components/ui/button";
-
 export default function LandingPage() {
     return (
-        <div className="landing-page font-sans bg-white min-h-screen">
+        <div className="landing-page font-sans bg-white min-h-screen flex flex-col">
             <LandingNavbar />
-            <main>
+            <main className="flex-1">
                 <HeroSection />
                 <StatsSection />
                 <FeaturedBoardingsSection />
@@ -23,7 +21,6 @@ export default function LandingPage() {
                 <BenefitsSection />
                 <CTASection />
             </main>
-
         </div>
     );
 }

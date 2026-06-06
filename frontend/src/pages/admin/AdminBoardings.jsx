@@ -120,46 +120,35 @@ export default function AdminBoardings() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button className="h-14 px-8 rounded-[1.25rem] bg-slate-900 text-white font-black shadow-xl hover:shadow-violet-200 transition-all active:scale-95 w-full sm:w-auto">
-                <Plus className="w-5 h-5 mr-3" /> New Listing
-              </Button>
             </div>
           </motion.div>
 
           {/* Controls Bar */}
           <div className="flex items-center justify-between bg-white p-4 rounded-[1.5rem] shadow-sm border border-slate-50">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-violet-600 bg-violet-50">
+              <span className="px-4 rounded-xl font-black text-[10px] uppercase tracking-widest text-violet-600 bg-violet-50 py-2">
                 All Assets ({boardingsList.length})
-              </Button>
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-600">
-                Full Properties ({boardingsList.filter(b => b.type === 'full_property').length})
-              </Button>
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-600">
-                Room Based ({boardingsList.filter(b => b.type === 'room_based').length})
-              </Button>
+              </span>
             </div>
             {(ownerId || tenantId) && (
-               <Button 
-                variant="outline" 
-                onClick={() => navigate('/admin/boardings')}
-                className="rounded-xl border-slate-100 font-bold text-xs"
-               >
-                 Clear Filters
-               </Button>
+               <Link to="/admin/boardings">
+                 <Button 
+                  variant="outline" 
+                  className="rounded-xl border-slate-100 font-bold text-xs"
+                 >
+                   Clear Filters
+                 </Button>
+               </Link>
             )}
-            <Button variant="ghost" className="rounded-xl flex items-center gap-2 text-slate-400 font-bold">
-              <Filter className="w-4 h-4" /> Filter <ChevronDown className="w-4 h-4" />
-            </Button>
           </div>
 
           {/* Directory List */}
           {loading ? (
              <div className="py-20 flex flex-col items-center justify-center space-y-4">
                 <motion.div 
-                  animate={{ rotate: 360 }} 
-                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                  className="w-10 h-10 border-4 border-t-violet-600 border-slate-200 rounded-full"
+                   animate={{ rotate: 360 }} 
+                   transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                   className="w-10 h-10 border-4 border-t-violet-600 border-slate-200 rounded-full"
                 />
                 <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Scanning property registry...</p>
              </div>
@@ -217,24 +206,6 @@ export default function AdminBoardings() {
                               </span>
                             </div>
                           </div>
-
-                          <div className="flex items-center gap-3 ml-auto xl:ml-0">
-                            <Button className="h-14 px-8 rounded-2xl bg-slate-900 text-white font-black shadow-xl hover:shadow-violet-200 transition-all flex items-center gap-3 active:scale-95">
-                              Review Listing <ArrowUpRight className="w-4 h-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl border-slate-100 hover:bg-slate-50">
-                                  <MoreHorizontal className="w-5 h-5 text-slate-400" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-2xl p-2 border-slate-100 shadow-2xl font-sans">
-                                <DropdownMenuItem className="rounded-xl font-bold cursor-pointer text-emerald-600">Approve Listing</DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-xl font-bold cursor-pointer">Suspend Approval</DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-xl font-bold cursor-pointer text-rose-600">Remove Listing</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
                         </div>
                       </div>
                     </Card>
@@ -272,10 +243,6 @@ export default function AdminBoardings() {
                     <p className="text-[10px] font-black text-amber-300 uppercase tracking-widest">Needs Review</p>
                     <p className="text-4xl font-black">{boardingsList.filter(b => b.status === 'pending').length}</p>
                   </div>
-                  <div className="w-px h-12 bg-white/10 hidden sm:block"></div>
-                  <Button className="h-14 px-8 rounded-2xl bg-white text-indigo-600 hover:bg-slate-50 font-black shadow-xl">
-                    Run Bulk Audit
-                  </Button>
                 </div>
               </div>
             </motion.div>

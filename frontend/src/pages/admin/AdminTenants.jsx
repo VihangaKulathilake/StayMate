@@ -104,46 +104,34 @@ export default function AdminTenants() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button variant="outline" className="h-14 px-6 rounded-[1.25rem] border-slate-200 bg-white grid place-items-center hover:bg-slate-50 transition-all">
-                <Filter className="w-5 h-5 text-slate-400" />
-              </Button>
             </div>
           </motion.div>
 
           {/* Controls Bar */}
           <div className="flex items-center justify-between bg-white p-4 rounded-[1.5rem] shadow-sm border border-slate-50">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-indigo-600 bg-indigo-50">
+              <span className="px-4 rounded-xl font-black text-[10px] uppercase tracking-widest text-indigo-600 bg-indigo-50 py-2">
                 All Residents ({tenantsList.length})
-              </Button>
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-600">
-                Verified ({tenantsList.filter(t => t.isVerified).length || 0})
-              </Button>
-              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-600">
-                Awaiting Audit ({tenantsList.filter(t => !t.isVerified).length || 0})
-              </Button>
+              </span>
             </div>
-            <Button variant="ghost" className="rounded-xl flex items-center gap-2 text-slate-400 font-bold">
-              <Filter className="w-4 h-4" /> Filter <ChevronDown className="w-4 h-4" />
-            </Button>
           </div>
 
           {/* Directory List Container */}
           {loading ? (
              <div className="py-20 flex flex-col items-center justify-center space-y-4">
                 <motion.div 
-                  animate={{ rotate: 360 }} 
-                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                  className="w-10 h-10 border-4 border-t-indigo-600 border-slate-200 rounded-full"
+                   animate={{ rotate: 360 }} 
+                   transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                   className="w-10 h-10 border-4 border-t-indigo-600 border-slate-200 rounded-full"
                 />
                 <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Scanning tenant signatures...</p>
              </div>
           ) : (
             <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-6"
+               variants={containerVariants}
+               initial="hidden"
+               animate="visible"
+               className="space-y-6"
             >
               {filteredTenants.map((tenant) => (
                 <motion.div key={tenant._id} variants={itemVariants}>
@@ -194,18 +182,6 @@ export default function AdminTenants() {
                                    Audit Profile <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                                 </Button>
                              </Link>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                   <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl border-slate-100 hover:bg-slate-50">
-                                      <MoreVertical className="w-5 h-5 text-slate-400" />
-                                   </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-2xl p-2 border-slate-100 shadow-2xl font-sans">
-                                   <DropdownMenuItem className="rounded-xl font-bold p-3 cursor-pointer text-emerald-600">Verify Identity</DropdownMenuItem>
-                                   <DropdownMenuItem className="rounded-xl font-bold p-3 cursor-pointer">Block Account</DropdownMenuItem>
-                                   <DropdownMenuItem className="rounded-xl font-bold p-3 cursor-pointer text-rose-600 focus:text-rose-600 focus:bg-rose-50">Flag Impersonation</DropdownMenuItem>
-                                </DropdownMenuContent>
-                             </DropdownMenu>
                           </div>
                        </div>
                     </div>
@@ -233,10 +209,6 @@ export default function AdminTenants() {
                    <h4 className="text-xl font-black tracking-tight">System Policy Compliance</h4>
                    <p className="text-indigo-100 font-medium max-w-sm">Resident data is encrypted and managed according to global privacy standards.</p>
                 </div>
-             </div>
-             <div className="relative z-10 flex items-center gap-4 w-full md:w-auto">
-                <Button variant="ghost" className="font-black text-white hover:bg-white/10 h-14 px-8 rounded-2xl">Privacy Audit</Button>
-                <Button className="bg-white text-indigo-600 font-black h-14 px-8 rounded-2xl hover:bg-slate-50 transition-all shadow-xl">Data Policy</Button>
              </div>
           </motion.div>
         </main>

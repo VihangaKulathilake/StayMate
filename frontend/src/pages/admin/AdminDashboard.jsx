@@ -157,13 +157,10 @@ export default function AdminDashboard() {
                      <div className="hidden sm:flex flex-col items-end mr-2">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Platform Status</span>
                         <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-0.5">
-                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> 
+                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                            Systems Nominal
                         </span>
                      </div>
-                     <Button className="h-14 px-8 rounded-2xl bg-slate-900 text-white font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 flex items-center gap-3">
-                         Export Intelligence <Zap className="w-4 h-4 text-violet-400" />
-                     </Button>
                   </div>
                </motion.div>
 
@@ -178,10 +175,10 @@ export default function AdminDashboard() {
                   {[
                      { label: "Active Landlords", val: stats.landlords, icon: Wallet, tone: "from-orange-500/10 to-orange-600/5 text-orange-600", border: "border-orange-100/50", trend: "+12.5%" },
                      { label: "Platform Residents", val: stats.tenants, icon: Users, tone: "from-indigo-500/10 to-indigo-600/5 text-indigo-600", border: "border-indigo-100/50", trend: "+8.2%" },
-                     { label: "Full Properties", val: stats.allBoardings.filter(b=>b.type==='full_property').length, icon: Home, tone: "from-blue-500/10 to-blue-600/5 text-blue-600", border: "border-blue-100/50", trend: "+5.4%" },
-                     { label: "Room-Based", val: stats.allBoardings.filter(b=>b.type==='room_based').length, icon: BedDouble, tone: "from-violet-500/10 to-violet-600/5 text-violet-600", border: "border-violet-100/50", trend: "+14.1%" },
+                     { label: "Full Properties", val: stats.allBoardings.filter(b => b.type === 'full_property').length, icon: Home, tone: "from-blue-500/10 to-blue-600/5 text-blue-600", border: "border-blue-100/50", trend: "+5.4%" },
+                     { label: "Room-Based", val: stats.allBoardings.filter(b => b.type === 'room_based').length, icon: BedDouble, tone: "from-violet-500/10 to-violet-600/5 text-violet-600", border: "border-violet-100/50", trend: "+14.1%" },
                      { label: "Global Revenue", val: `Rs. ${(stats.revenue / 1000).toFixed(0)}k`, icon: BarChart3, tone: "from-emerald-500/10 to-emerald-600/5 text-emerald-600", border: "border-emerald-100/50", trend: "+10.3%" },
-                     { label: "Pending Listed", val: stats.allBoardings.filter(b=>b.status==='pending').length, icon: ShieldCheck, tone: "from-rose-500/10 to-rose-600/5 text-rose-600", border: "border-rose-100/50", trend: "Critical" },
+                     { label: "Pending Listed", val: stats.allBoardings.filter(b => b.status === 'pending').length, icon: ShieldCheck, tone: "from-rose-500/10 to-rose-600/5 text-rose-600", border: "border-rose-100/50", trend: "Critical" },
                   ].map((stat, i) => (
                      <motion.div key={i} variants={fadeIn}>
                         <Card className={cn(
@@ -222,129 +219,121 @@ export default function AdminDashboard() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                      >
-                     <Card className="rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 bg-white p-10 group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
-                        <CardHeader className="p-0 mb-10 border-none space-y-4">
-                           <div className="flex items-center justify-between">
-                              <div className="space-y-1">
-                                 <CardTitle className="text-3xl font-black text-slate-900 tracking-tight">Growth Velocity</CardTitle>
-                                 <CardDescription className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Real-time ecosystem expansion metrics</CardDescription>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                 <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-                                    <div className="flex items-center gap-2">
-                                       <span className="w-2 h-2 rounded-full bg-violet-600 shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
-                                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Users</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                       <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Listings</span>
+                        <Card className="rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 bg-white p-10 group relative overflow-hidden">
+                           <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+                           <CardHeader className="p-0 mb-10 border-none space-y-4">
+                              <div className="flex items-center justify-between">
+                                 <div className="space-y-1">
+                                    <CardTitle className="text-3xl font-black text-slate-900 tracking-tight">Growth Velocity</CardTitle>
+                                    <CardDescription className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Real-time ecosystem expansion metrics</CardDescription>
+                                 </div>
+                                 <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
+                                       <div className="flex items-center gap-2">
+                                          <span className="w-2 h-2 rounded-full bg-violet-600 shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
+                                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Users</span>
+                                       </div>
+                                       <div className="flex items-center gap-2">
+                                          <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Listings</span>
+                                       </div>
                                     </div>
                                  </div>
                               </div>
+                           </CardHeader>
+                           <div className="h-[400px] w-full">
+                              <ResponsiveContainer width="100%" height="100%">
+                                 <BarChart data={dynamicGrowthData} barGap={12}>
+                                    <defs>
+                                       <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={1} />
+                                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                       </linearGradient>
+                                       <linearGradient id="listingGradient" x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
+                                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0.8} />
+                                       </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis
+                                       dataKey="name"
+                                       axisLine={false}
+                                       tickLine={false}
+                                       tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 800 }}
+                                       dy={15}
+                                    />
+                                    <YAxis
+                                       axisLine={false}
+                                       tickLine={false}
+                                       tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 800 }}
+                                    />
+                                    <Tooltip
+                                       cursor={{ fill: '#f8fafc', radius: 12 }}
+                                       contentStyle={{
+                                          borderRadius: '1.5rem',
+                                          border: 'none',
+                                          boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)',
+                                          padding: '1.5rem',
+                                          fontWeight: 900
+                                       }}
+                                    />
+                                    <Bar dataKey="users" fill="url(#userGradient)" radius={[8, 8, 0, 0]} barSize={28} />
+                                    <Bar dataKey="boardings" fill="url(#listingGradient)" radius={[8, 8, 0, 0]} barSize={28} />
+                                 </BarChart>
+                              </ResponsiveContainer>
                            </div>
-                        </CardHeader>
-                        <div className="h-[400px] w-full">
-                           <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={dynamicGrowthData} barGap={12}>
-                                 <defs>
-                                    <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-                                       <stop offset="5%" stopColor="#8b5cf6" stopOpacity={1}/>
-                                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                                    </linearGradient>
-                                    <linearGradient id="listingGradient" x1="0" y1="0" x2="0" y2="1">
-                                       <stop offset="5%" stopColor="#6366f1" stopOpacity={1}/>
-                                       <stop offset="95%" stopColor="#6366f1" stopOpacity={0.8}/>
-                                    </linearGradient>
-                                 </defs>
-                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                 <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 800 }}
-                                    dy={15}
-                                 />
-                                 <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 800 }}
-                                 />
-                                 <Tooltip
-                                    cursor={{ fill: '#f8fafc', radius: 12 }}
-                                    contentStyle={{ 
-                                       borderRadius: '1.5rem', 
-                                       border: 'none', 
-                                       boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)', 
-                                       padding: '1.5rem',
-                                       fontWeight: 900
-                                    }}
-                                 />
-                                 <Bar dataKey="users" fill="url(#userGradient)" radius={[8, 8, 0, 0]} barSize={28} />
-                                 <Bar dataKey="boardings" fill="url(#listingGradient)" radius={[8, 8, 0, 0]} barSize={28} />
-                              </BarChart>
-                           </ResponsiveContainer>
-                        </div>
-                     </Card>
-                  </motion.div>
+                        </Card>
+                     </motion.div>
 
-                  {/* Recent Activity (Moved into Left Column) */}
-                  <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                     <Card className="rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 bg-white overflow-hidden h-full">
-                        <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between bg-slate-50/50 backdrop-blur-md">
-                           <div>
-                              <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">Recent Activity</CardTitle>
-                              <CardDescription className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Live platform entrance monitoring</CardDescription>
-                           </div>
-                           <Link to="/admin/landlords">
-                              <Button variant="outline" className="font-black text-slate-600 hover:text-violet-600 hover:bg-violet-50 rounded-2xl border-slate-200 h-10 px-6 transition-all duration-300">
-                                 Full Directory
-                              </Button>
-                           </Link>
-                        </CardHeader>
-                        <CardContent className="p-0 px-8 pb-10 mt-6">
-                           <div className="space-y-3">
-                              {stats.recentUsers.map((user, i) => (
-                                 <div key={i} className="group p-5 rounded-[2rem] border border-transparent hover:border-slate-100 hover:bg-slate-50/50 transition-all duration-500 relative flex items-center justify-between overflow-hidden">
-                                    <div className="flex items-center gap-5 relative z-10">
-                                       <div className="relative">
-                                          <div className={cn(
-                                             "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg transition-transform duration-500 group-hover:scale-110",
-                                             user.role === 'admin' ? "bg-violet-600 text-white" : "bg-white text-slate-900 border border-slate-100"
-                                          )}>
-                                             {user.name?.[0]?.toUpperCase() || 'U'}
-                                          </div>
-                                          <span className={cn(
-                                             "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white shadow-sm",
-                                             user.role === 'landlord' ? "bg-orange-500" : "bg-indigo-500"
-                                          )} />
-                                       </div>
-                                       <div>
-                                          <p className="font-black text-slate-900 text-lg leading-tight group-hover:text-violet-600 transition-colors">{user.name}</p>
-                                          <div className="flex items-center gap-3 mt-1.5">
-                                             <Badge className={cn(
-                                                "text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none px-2 py-0.5 rounded-md",
-                                                user.role === 'landlord' && "bg-orange-100 text-orange-600",
-                                                user.role === 'tenant' && "bg-indigo-100 text-indigo-600"
+                     {/* Recent Activity (Moved into Left Column) */}
+                     <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                        <Card className="rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 bg-white overflow-hidden h-full">
+                           <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between bg-slate-50/50 backdrop-blur-md">
+                              <div>
+                                 <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">Recent Activity</CardTitle>
+                                 <CardDescription className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Live platform entrance monitoring</CardDescription>
+                              </div>
+                           </CardHeader>
+                           <CardContent className="p-0 px-8 pb-10 mt-6">
+                              <div className="space-y-3">
+                                 {stats.recentUsers.map((user, i) => (
+                                    <div key={i} className="group p-5 rounded-[2rem] border border-transparent hover:border-slate-100 hover:bg-slate-50/50 transition-all duration-500 relative flex items-center justify-between overflow-hidden">
+                                       <div className="flex items-center gap-5 relative z-10">
+                                          <div className="relative">
+                                             <div className={cn(
+                                                "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg transition-transform duration-500 group-hover:scale-110",
+                                                user.role === 'admin' ? "bg-violet-600 text-white" : "bg-white text-slate-900 border border-slate-100"
                                              )}>
-                                                {user.role}
-                                             </Badge>
-                                             <span className="text-[10px] font-bold text-slate-400">
-                                                {new Date(user.createdAt).toLocaleDateString()}
-                                             </span>
+                                                {user.name?.[0]?.toUpperCase() || 'U'}
+                                             </div>
+                                             <span className={cn(
+                                                "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white shadow-sm",
+                                                user.role === 'landlord' ? "bg-orange-500" : "bg-indigo-500"
+                                             )} />
+                                          </div>
+                                          <div>
+                                             <p className="font-black text-slate-900 text-lg leading-tight group-hover:text-violet-600 transition-colors">{user.name}</p>
+                                             <div className="flex items-center gap-3 mt-1.5">
+                                                <Badge className={cn(
+                                                   "text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none px-2 py-0.5 rounded-md",
+                                                   user.role === 'landlord' && "bg-orange-100 text-orange-600",
+                                                   user.role === 'tenant' && "bg-indigo-100 text-indigo-600"
+                                                )}>
+                                                   {user.role}
+                                                </Badge>
+                                                <span className="text-[10px] font-bold text-slate-400">
+                                                   {new Date(user.createdAt).toLocaleDateString()}
+                                                </span>
+                                             </div>
                                           </div>
                                        </div>
                                     </div>
-                                    <Button size="icon" className="h-10 w-10 rounded-xl bg-white text-slate-300 group-hover:text-violet-600 group-hover:bg-white shadow-sm border border-slate-100 group-hover:shadow-md transition-all">
-                                       <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
-                                    </Button>
-                                 </div>
-                              ))}
-                           </div>
-                        </CardContent>
-                     </Card>
-                  </motion.div>
-                  </div> {/* Close Left Column (fixes the JSX element div error) */}
+                                 ))}
+                              </div>
+                           </CardContent>
+                        </Card>
+                     </motion.div>
+                  </div> {/* Close Left Column */}
 
                   {/* Right Column (Platform Health, Alerts, Command) */}
                   <motion.div
@@ -373,14 +362,11 @@ export default function AdminDashboard() {
                                  </LineChart>
                               </ResponsiveContainer>
                            </div>
-                           <div className="space-y-6 pt-4">
-                              <div className="flex justify-between items-end border-b border-white/10 pb-6">
+                           <div className="pt-4">
+                              <div className="flex justify-between items-end pb-2">
                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-200">Current Velocity</span>
                                  <span className="text-4xl font-black tracking-tighter">{platformHealth[platformHealth.length - 1]?.health.toFixed(1)}%</span>
                               </div>
-                              <Button className="w-full h-14 rounded-2xl bg-white text-slate-900 hover:bg-violet-50 font-black shadow-xl transition-all duration-300">
-                                 Diagnostic Logs <Zap className="w-4 h-4 ml-2 text-violet-600" />
-                               </Button>
                            </div>
                         </div>
                      </Card>
@@ -409,7 +395,7 @@ export default function AdminDashboard() {
                            ))}
                         </div>
                      </Card>
-                  {/* Infrastructure Command (Moved into Right Column) */}
+                     {/* Infrastructure Command */}
                      <Card className="rounded-[3rem] border-0 shadow-2xl bg-slate-900 text-white p-12 h-auto flex flex-col justify-between relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-80 h-80 bg-violet-600/20 rounded-full blur-3xl -mr-40 -mt-40"></div>
                         <div className="space-y-8 relative z-10">
@@ -421,11 +407,6 @@ export default function AdminDashboard() {
                            <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-sm">
                               Adjust platform-wide risk parameters, set global policy variables, and maintain infrastructure equilibrium.
                            </p>
-                        </div>
-                        <div className="pt-16 relative z-10">
-                           <Button className="h-16 px-12 rounded-2xl bg-white text-slate-900 font-black hover:bg-slate-100 hover:-translate-y-1 transition-all shadow-2xl group/cmd">
-                              Open Platform Console <Zap className="w-5 h-5 ml-4 text-violet-600 group-hover/cmd:scale-125 transition-transform" />
-                           </Button>
                         </div>
                      </Card>
                   </motion.div>

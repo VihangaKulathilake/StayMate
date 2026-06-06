@@ -156,12 +156,11 @@ export default function MyBookings() {
                                                         </div>
 
                                                         <div className="flex flex-wrap items-center gap-4 pt-8 border-t border-slate-50">
-                                                            <Button className="rounded-2xl font-black h-12 px-8 gap-3 shadow-lg shadow-primary/20 bg-primary group-hover:shadow-primary/40 transition-shadow transition-all active:scale-95">
-                                                                <FileText className="w-4 h-4" /> View Lease Agreement
-                                                            </Button>
-                                                            <Button variant="outline" className="rounded-2xl border-slate-100 font-black h-12 px-8 gap-3 bg-white hover:bg-slate-50 transition-all active:scale-95 text-slate-600">
-                                                                <MessageSquare className="w-4 h-4" /> Message Landlord
-                                                            </Button>
+                                                            <Link to="/contact">
+                                                                <Button variant="outline" className="rounded-2xl border-slate-100 font-black h-12 px-8 gap-3 bg-white hover:bg-slate-50 transition-all active:scale-95 text-slate-600">
+                                                                    <MessageSquare className="w-4 h-4" /> Message Landlord
+                                                                </Button>
+                                                            </Link>
                                                             <Link to={`/boarding/${booking.boarding?._id}`} className="ml-auto">
                                                                 <Button variant="ghost" className="rounded-2xl font-black text-primary hover:bg-primary/5 transition-all gap-2">
                                                                     Property Details <ChevronRight className="w-4 h-4" />
@@ -210,10 +209,7 @@ export default function MyBookings() {
                                                         <MapPin className="w-4 h-4 text-primary" /> {booking.boarding?.address || "Location Hidden"}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-3 w-full md:w-auto">
-                                                    <Button variant="outline" className="flex-grow md:flex-none rounded-xl border-slate-100 text-slate-400 font-black h-12 px-6 hover:text-rose-500 hover:border-rose-100 transition-all">Withdraw</Button>
-                                                    <Button variant="outline" className="flex-grow md:flex-none rounded-xl border-slate-100 text-slate-900 font-black h-12 px-6 hover:bg-slate-50 transition-all">Application Status</Button>
-                                                </div>
+
                                             </CardContent>
                                         </Card>
                                     </motion.div>

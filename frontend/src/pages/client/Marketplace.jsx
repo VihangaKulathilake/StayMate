@@ -418,16 +418,6 @@ export default function Marketplace() {
                                                         <Badge className="bg-white/90 text-slate-900 hover:bg-white border-none backdrop-blur-md shadow-sm px-4 py-1.5 font-bold rounded-full uppercase text-[10px] tracking-widest">
                                                             {boarding.type?.replace('_', ' ') || "Boarding"}
                                                         </Badge>
-                                                        <motion.button
-                                                            whileTap={{ scale: 0.9 }}
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                // Handle wishlist logic
-                                                            }}
-                                                            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 shadow-sm transition-all"
-                                                        >
-                                                            <Heart className="w-5 h-5 transition-colors" />
-                                                        </motion.button>
                                                     </div>
 
                                                     {/* Quick Info Overlay */}

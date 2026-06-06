@@ -58,22 +58,14 @@ export default function AdminNavbar() {
                 {/* Brand */}
                 <div className="flex items-center gap-8">
                     <Link to="/" className="transition-opacity hover:opacity-80 no-underline">
-                        <Logo suffix="Admin" />
+                        <Logo suffix="Landlord" />
                     </Link>
 
 
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {/* Search Bar */}
-                    <div className="hidden md:flex relative w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <Input
-                            type="search"
-                            placeholder="Search records..."
-                            className="pl-9 h-9 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-primary/20 rounded-full"
-                        />
-                    </div>
+
 
                     {/* Messages Icon */}
                     <Link to="/contact">
@@ -93,7 +85,7 @@ export default function AdminNavbar() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+                            <DropdownMenuLabel>Landlord Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="cursor-pointer" asChild>
                                 <Link to="/profile" className="no-underline text-inherit flex items-center">
@@ -101,15 +93,11 @@ export default function AdminNavbar() {
                                     <span>Profile</span>
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                                <Settings className="mr-2 h-4 w-4" />
-                                <span>Settings</span>
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
                                 <LogOut className="mr-2 h-4 w-4" />
                                 <span>Log out</span>
-                            </DropdownMenuItem>
+                              </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
 
@@ -125,7 +113,7 @@ export default function AdminNavbar() {
                                 <SheetHeader>
                                     <SheetTitle className="text-left flex items-center gap-2">
                                         <Home className="w-5 h-5 text-primary" />
-                                        <span>StayMate Admin</span>
+                                        <span>StayMate Landlord</span>
                                     </SheetTitle>
                                 </SheetHeader>
                                 <div className="flex flex-col gap-2 mt-8">
@@ -143,12 +131,11 @@ export default function AdminNavbar() {
                                     <div className="px-4 py-2">
                                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Account</p>
                                         <div className="flex flex-col gap-2">
-                                            <Button variant="ghost" className="justify-start gap-3 h-12 text-lg font-medium">
-                                                <UserCircle className="w-5 h-5" /> Profile
-                                            </Button>
-                                            <Button variant="ghost" className="justify-start gap-3 h-12 text-lg font-medium">
-                                                <Settings className="w-5 h-5" /> Settings
-                                            </Button>
+                                            <Link to="/profile" className="no-underline text-inherit w-full">
+                                                <Button variant="ghost" className="justify-start gap-3 h-12 text-lg font-medium w-full">
+                                                    <UserCircle className="w-5 h-5" /> Profile
+                                                </Button>
+                                            </Link>
                                             <Button
                                                 variant="ghost"
                                                 className="justify-start gap-3 h-12 text-lg font-medium text-destructive hover:text-destructive hover:bg-destructive/10"
