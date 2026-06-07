@@ -69,6 +69,7 @@ export const updateCurrentUserProfile = async (req, res) => {
         phone: user.phone,
         address: user.address,
         isVerified: user.isVerified,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {

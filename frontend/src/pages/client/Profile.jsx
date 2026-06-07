@@ -217,15 +217,15 @@ export default function Profile() {
     const DashIcon = config.icon;
 
     const [activeTab, setActiveTab] = useState('profile');
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(authUser);
     const [loadingUser, setLoadingUser] = useState(true);
 
     // Profile edit
     const [editMode, setEditMode] = useState(false);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
-    const [address, setAddress] = useState('');
+    const [name, setName] = useState(authUser?.name || '');
+    const [email, setEmail] = useState(authUser?.email || '');
+    const [phone, setPhone] = useState(authUser?.phone || '');
+    const [address, setAddress] = useState(authUser?.address || '');
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileAlert, setProfileAlert] = useState(null);
 
@@ -336,7 +336,7 @@ export default function Profile() {
     };
 
     const initials = (user?.name || authUser?.name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—';
+    const memberSince = (user?.createdAt || authUser?.createdAt) ? new Date(user?.createdAt || authUser?.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—';
 
     const content = (
         <div className="max-w-4xl mx-auto space-y-8">
