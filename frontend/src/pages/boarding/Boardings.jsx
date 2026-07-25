@@ -42,6 +42,7 @@ const cardVariants = {
 export default function Boardings() {
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
   const [boardingsList, setBoardingsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,10 +62,15 @@ export default function Boardings() {
     }
   };
 
-  const filteredProperties = boardingsList.filter(p =>
-    (p.boardingName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-    (p.address?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-  );
+  const filteredProperties = boardingsList.filter(p => {
+    const matchesSearch = (p.boardingName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (p.address?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+    
+    if (filterType !== 'all') {
+      return matchesSearch && p.type === filterType;
+    }
+    return matchesSearch;
+  });
 
   const roomBasedCount = boardingsList.filter(p => p.type === 'room_based').length;
   const fullPropertyCount = boardingsList.filter(p => p.type === 'full_property').length;
@@ -77,51 +83,79 @@ export default function Boardings() {
       <AdminNavbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 lg:p-12 space-y-10">
+        <main className="flex-1 p-4 sm:p-6 lg:p-12 space-y-8 sm:space-y-10 min-w-0">
           {/* Header & Search */}
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-8">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 sm:gap-8">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-indigo-600 font-bold uppercase tracking-[0.2em] text-[10px]">
-                <Building2 className="w-3 h-3" />
+                <Building2 className="w-3.5 h-3.5" />
                 Asset Management
               </div>
-              <h1 className="text-5xl font-black tracking-tight text-slate-900 mt-2">Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Portfolio</span></h1>
-              <p className="text-slate-500 font-medium">Manage and monitor your properties across all locations.</p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 mt-2">Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Portfolio</span></h1>
+              <p className="text-slate-500 font-medium text-sm sm:text-base">Manage and monitor your properties across all locations.</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full xl:w-auto">
               <div className="relative group w-full sm:w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   placeholder="Search properties..."
-                  className="h-14 pl-12 pr-4 rounded-[1.25rem] border-none bg-white shadow-xl shadow-slate-200/50 focus:ring-2 focus:ring-indigo-600/20 font-bold"
+                  className="h-12 sm:h-14 pl-12 pr-4 rounded-[1.25rem] border-none bg-white shadow-xl shadow-slate-200/50 focus:ring-2 focus:ring-indigo-600/20 font-bold text-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center bg-white p-1 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="icon"
-                  onClick={() => setViewMode('grid')}
-                  className={`rounded-xl h-12 w-12 transition-all ${viewMode === 'grid' ? 'bg-indigo-600 shadow-lg shadow-indigo-100' : 'text-slate-400'}`}
-                >
-                  <Grid2X2 className="w-5 h-5" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="icon"
-                  onClick={() => setViewMode('list')}
-                  className={`rounded-xl h-12 w-12 transition-all ${viewMode === 'list' ? 'bg-indigo-600 shadow-lg shadow-indigo-100' : 'text-slate-400'}`}
-                >
-                  <List className="w-5 h-5" />
-                </Button>
+              <div className="flex items-center justify-between sm:justify-start bg-white p-1 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50">
+                <div className="flex items-center">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('grid')}
+                    className={`rounded-xl h-10 w-10 sm:h-12 sm:w-12 transition-all ${viewMode === 'grid' ? 'bg-indigo-600 shadow-lg shadow-indigo-100' : 'text-slate-400'}`}
+                  >
+                    <Grid2X2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('list')}
+                    className={`rounded-xl h-10 w-10 sm:h-12 sm:w-12 transition-all ${viewMode === 'list' ? 'bg-indigo-600 shadow-lg shadow-indigo-100' : 'text-slate-400'}`}
+                  >
+                    <List className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </Button>
+                </div>
               </div>
               <Link to="/boardings/add" className="no-underline w-full sm:w-auto">
-                <Button className="h-14 px-8 rounded-[1.25rem] bg-indigo-600 text-white font-black shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-95 w-full">
-                  <Plus className="w-5 h-5 mr-3" /> Add Asset
+                <Button className="h-12 sm:h-14 px-6 sm:px-8 rounded-[1.25rem] bg-indigo-600 text-white font-black shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-95 w-full">
+                  <Plus className="w-5 h-5 mr-2 sm:mr-3" /> Add Asset
                 </Button>
               </Link>
+            </div>
+          </div>
+
+          {/* Interactive Filter Pills */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { id: 'all', label: `All (${boardingsList.length})` },
+                { id: 'room_based', label: `Room-Based (${roomBasedCount})` },
+                { id: 'full_property', label: `Full Property (${fullPropertyCount})` }
+              ].map(pill => (
+                <button
+                  key={pill.id}
+                  onClick={() => setFilterType(pill.id)}
+                  className={`px-3.5 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold uppercase tracking-wider transition-all ${
+                    filterType === pill.id 
+                      ? 'bg-indigo-600 text-white shadow-md' 
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+            <div className="text-[11px] sm:text-xs font-bold text-slate-400">
+              Occupancy: <span className="text-indigo-600 font-black">{occupancyRate}%</span> ({totalOccupied}/{totalRooms} Units)
             </div>
           </div>
 
@@ -136,8 +170,10 @@ export default function Boardings() {
                 exit={{ opacity: 0, y: 10 }}
                 className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
               >
-                {loading && <p className="text-center p-12 text-slate-400 font-bold col-span-full">Retrieving asset data...</p>}
-                {filteredProperties.map((p) => (
+                {loading && [1, 2, 3].map(n => (
+                  <div key={n} className="h-96 rounded-[2.5rem] bg-slate-200/60 animate-pulse" />
+                ))}
+                {!loading && filteredProperties.map((p) => (
                   <motion.div key={p._id} variants={cardVariants} className="group">
                     <Card className="rounded-[2.5rem] border-0 shadow-lg shadow-slate-200/40 overflow-hidden bg-white hover:shadow-2xl transition-all duration-500 flex flex-col h-full border-b-8 border-transparent hover:border-indigo-600/30">
                       <div className="relative h-64 overflow-hidden">

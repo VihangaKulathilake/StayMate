@@ -158,25 +158,25 @@ export default function Marketplace() {
             <UserNavbar />
             <div className="flex flex-1 overflow-hidden">
                 <UserSidebar />
-                <main className="flex-1 container mx-auto px-4 py-8 overflow-y-auto">
+                <main className="flex-1 container mx-auto px-4 py-6 sm:py-8 overflow-y-auto min-w-0">
                     {/* Search & Filter Header */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8"
+                        className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8"
                     >
                         <div className="w-full md:w-1/2 relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                             <Input
                                 placeholder="Where do you want to stay?"
-                                className="w-full pl-12 h-14 bg-white border-none shadow-sm rounded-2xl text-lg focus-visible:ring-primary/20 transition-all focus:shadow-md"
+                                className="w-full pl-11 sm:pl-12 h-12 sm:h-14 bg-white border-none shadow-sm rounded-2xl text-base sm:text-lg focus-visible:ring-primary/20 transition-all focus:shadow-md"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
                             <Select value={sortBy} onValueChange={setSortBy}>
-                                <SelectTrigger className="w-[160px] h-12 bg-white border-none shadow-sm rounded-xl focus:ring-primary/20">
+                                <SelectTrigger className="flex-1 sm:w-[160px] h-11 sm:h-12 bg-white border-none shadow-sm rounded-xl focus:ring-primary/20 text-xs sm:text-sm font-semibold">
                                     <SelectValue placeholder="Sort By" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -191,7 +191,7 @@ export default function Marketplace() {
                             {/* Preferences Modal */}
                             <Dialog open={isPrefsModalOpen} onOpenChange={setIsPrefsModalOpen}>
                                 <DialogTrigger asChild>
-                                    <Button className="h-12 border-none shadow-indigo-100 shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl gap-2 font-bold px-6 active:scale-95 transition-all">
+                                    <Button className="h-11 sm:h-12 border-none shadow-indigo-100 shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl gap-2 font-bold px-4 sm:px-6 active:scale-95 transition-all text-xs sm:text-sm shrink-0">
                                         <Sparkles className="w-4 h-4" /> Personalize
                                     </Button>
                                 </DialogTrigger>

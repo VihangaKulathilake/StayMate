@@ -203,39 +203,39 @@ export default function BoardingDetails() {
             <UserNavbar />
             <div className="flex flex-1 overflow-hidden">
                 <UserSidebar />
-                <main className="flex-1 container mx-auto px-4 py-8 overflow-y-auto">
+                <main className="flex-1 container mx-auto px-4 py-6 sm:py-8 overflow-y-auto min-w-0">
                     {/* Top Navigation Row */}
                     <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center justify-between mb-8"
+                        className="flex items-center justify-between mb-6 sm:mb-8"
                     >
                         <Link to="/marketplace" className="no-underline">
-                            <Button variant="ghost" className="gap-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all font-black uppercase text-xs tracking-widest rounded-2xl group">
+                            <Button variant="ghost" className="gap-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all font-black uppercase text-[11px] sm:text-xs tracking-widest rounded-2xl group">
                                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Search
                             </Button>
                         </Link>
-                        <div className="flex items-center gap-3">
-                            <Button variant="outline" size="icon" className="rounded-2xl bg-white border-slate-100 shadow-sm h-11 w-11 hover:text-rose-500 hover:border-rose-100 hover:bg-rose-50 transition-all group">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <Button variant="outline" size="icon" className="rounded-2xl bg-white border-slate-100 shadow-sm h-10 w-10 sm:h-11 sm:w-11 hover:text-rose-500 hover:border-rose-100 hover:bg-rose-50 transition-all group">
                                 <Heart className="w-4 h-4 group-hover:scale-110 transition-transform" />
                             </Button>
-                            <Button variant="outline" size="icon" className="rounded-2xl bg-white border-slate-100 shadow-sm h-11 w-11 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all group">
+                            <Button variant="outline" size="icon" className="rounded-2xl bg-white border-slate-100 shadow-sm h-10 w-10 sm:h-11 sm:w-11 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all group">
                                 <Share2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
                             </Button>
                         </div>
                     </motion.div>
 
-                    <div className="grid lg:grid-cols-3 gap-12 items-start">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12 items-start">
 
                         {/* Main Content Area (Left col span 2) */}
                         <motion.div
                             variants={staggerContainer}
                             initial="hidden"
                             animate="visible"
-                            className="lg:col-span-2 space-y-12"
+                            className="lg:col-span-2 space-y-8 sm:space-y-12"
                         >
                             {/* Cinematic Image Gallery Carousel */}
-                            <motion.div variants={fadeInUp} className="w-full h-[45vh] md:h-[55vh] overflow-hidden rounded-[2.5rem] shadow-2xl relative bg-slate-900 group">
+                            <motion.div variants={fadeInUp} className="w-full h-[35vh] sm:h-[45vh] md:h-[55vh] overflow-hidden rounded-3xl sm:rounded-[2.5rem] shadow-2xl relative bg-slate-900 group">
                                 <div
                                     className="relative w-full h-full cursor-pointer"
                                     onClick={() => setSelectedImage(images[activeImage])}
@@ -256,23 +256,23 @@ export default function BoardingDetails() {
                                         <>
                                             <button
                                                 onClick={prevImage}
-                                                className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-black/20 hover:bg-white text-white hover:text-indigo-600 backdrop-blur-md rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
+                                                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-black/20 hover:bg-white text-white hover:text-indigo-600 backdrop-blur-md rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
                                             >
-                                                <ChevronLeft className="w-6 h-6" />
+                                                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                                             </button>
                                             <button
                                                 onClick={nextImage}
-                                                className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-black/20 hover:bg-white text-white hover:text-indigo-600 backdrop-blur-md rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
+                                                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-black/20 hover:bg-white text-white hover:text-indigo-600 backdrop-blur-md rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
                                             >
-                                                <ChevronRight className="w-6 h-6" />
+                                                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                                             </button>
 
                                             {/* Pagination Indicators */}
-                                            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-sm">
+                                            <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/30 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/10 shadow-sm">
                                                 {images.map((_, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className={`h-1.5 rounded-full transition-all duration-300 ${activeImage === idx ? 'w-6 bg-white' : 'w-2 bg-white/40'
+                                                        className={`h-1.5 rounded-full transition-all duration-300 ${activeImage === idx ? 'w-5 sm:w-6 bg-white' : 'w-2 bg-white/40'
                                                             }`}
                                                     />
                                                 ))}
@@ -280,16 +280,16 @@ export default function BoardingDetails() {
                                         </>
                                     )}
 
-                                    <div className="absolute bottom-6 left-8 right-8 z-20 pointer-events-none">
-                                        <Badge className="bg-white/20 text-white backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-xl text-[10px] tracking-widest uppercase font-black shadow-sm inline-block">
+                                    <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 right-4 sm:right-8 z-20 pointer-events-none">
+                                        <Badge className="bg-white/20 text-white backdrop-blur-md border border-white/20 px-3 sm:px-4 py-1 sm:py-1.5 rounded-xl text-[9px] sm:text-[10px] tracking-widest uppercase font-black shadow-sm inline-block">
                                             {boarding.type === "full_property" ? "Entire Property" : boarding.type?.replace("_", " ") || "Room Based"}
                                         </Badge>
                                     </div>
 
                                     {/* Hover Search Icon */}
-                                    <div className="absolute bottom-6 right-8 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <div className="w-12 h-12 bg-black/30 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/10 hover:bg-indigo-600 transition-colors shadow-lg">
-                                            <Search className="w-5 h-5 pointer-events-none" />
+                                    <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black/30 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/10 hover:bg-indigo-600 transition-colors shadow-lg">
+                                            <Search className="w-4 h-4 sm:w-5 sm:h-5 pointer-events-none" />
                                         </div>
                                     </div>
                                 </div>
@@ -297,17 +297,17 @@ export default function BoardingDetails() {
 
                             {/* Title & Core Details */}
                             <motion.div variants={fadeInUp}>
-                                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+                                <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-3 sm:mb-4">
                                     {boarding.boardingName}
                                 </h1>
-                                <div className="flex flex-wrap items-center gap-4 text-slate-600 font-bold text-sm md:text-base">
+                                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-slate-600 font-bold text-xs sm:text-base">
                                     <div className="flex items-center gap-2">
-                                        <MapPin className="w-5 h-5 text-indigo-500" />
+                                        <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
                                         {boarding.address}{boarding.city ? `, ${boarding.city}` : ''}
                                     </div>
                                     <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-slate-200"></div>
                                     <div className="flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-xs font-black tracking-widest uppercase">
-                                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500 shrink-0" />
                                         <span>{averageRating ? `${averageRating} (${reviews.filter(r => r.rating > 0).length} ${reviews.filter(r => r.rating > 0).length === 1 ? 'Review' : 'Reviews'})` : "New (0 Reviews)"}</span>
                                     </div>
                                 </div>
