@@ -7,11 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, MapPin, Wifi, Wind, Car, Shield, Coffee, Check, BookOpen, Bath, Shirt, Droplets, DoorOpen, Bus, VolumeX } from "lucide-react";
-import { getBoardingById, updateBoarding } from "@/api/boardings";
+import { Plus, Trash2, MapPin, Wifi, Wind, Car, Shield, Coffee, Check, BookOpen, Bath, Shirt, Droplets, DoorOpen, Bus, VolumeX, AlertTriangle } from "lucide-react";
+import { getBoardingById, updateBoarding, deleteBoarding } from "@/api/boardings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MapPicker from "@/components/common/MapPicker";
 import ImageUpload from "@/components/common/ImageUpload";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const PROPERTY_FACILITIES = [
   { name: "Parking Space", icon: Car },
@@ -38,6 +46,10 @@ export default function EditBoarding() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [submitError, setSubmitError] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [form, setForm] = useState({
     boardingName: "",
     address: "",
@@ -140,6 +152,7 @@ export default function EditBoarding() {
     e.preventDefault();
     try {
       setLoading(true);
+      setSubmitError("");
       const submitData = {
         ...form,
         location: {
@@ -158,9 +171,24 @@ export default function EditBoarding() {
       navigate("/boardings");
     } catch (error) {
       console.error(error);
-      alert("Failed to update boarding");
+      setSubmitError(error.message || "Failed to update boarding.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteProperty = async () => {
+    try {
+      setDeleteLoading(true);
+      setDeleteError("");
+      await deleteBoarding(id);
+      setIsDeleteDialogOpen(false);
+      navigate("/boardings");
+    } catch (error) {
+      console.error("Failed to delete property:", error);
+      setDeleteError(error.message || "Failed to delete boarding.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -171,13 +199,19 @@ export default function EditBoarding() {
       <AdminNavbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 lg:p-10">
+        <main className="flex-1 p-6 lg:p-10 space-y-6">
           <Card className="max-w-3xl rounded-2xl border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="text-3xl font-black tracking-tight">Edit Boarding</CardTitle>
               <p className="text-xs uppercase tracking-wider font-black text-slate-400">Property ID: {id}</p>
             </CardHeader>
             <CardContent>
+              {submitError && (
+                <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold space-y-1">
+                  <p className="font-black uppercase tracking-wider text-[10px] text-rose-500">Update Failed</p>
+                  <p>{submitError}</p>
+                </div>
+              )}
               <form className="space-y-5" onSubmit={onSubmit}>
                 <div className="space-y-2">
                   <Label htmlFor="boardingName">Boarding Name</Label>
@@ -374,7 +408,7 @@ export default function EditBoarding() {
                   <Textarea id="description" name="description" rows={5} value={form.description} onChange={onChange} />
                 </div>
                  <div className="flex gap-2 pt-2">
-                  <Button type="submit" disabled={loading} className="rounded-xl font-bold">
+                  <Button type="submit" disabled={loading} className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
                     {loading ? "Saving Changes..." : "Save Changes"}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => navigate("/boardings")} className="rounded-xl">Cancel</Button>
@@ -382,6 +416,73 @@ export default function EditBoarding() {
               </form>
             </CardContent>
           </Card>
+
+          {/* Danger Zone */}
+          <Card className="max-w-3xl rounded-2xl border border-rose-100 bg-rose-50/30 shadow-sm">
+            <CardHeader>
+              <div className="flex items-center gap-2 text-rose-600 font-bold uppercase tracking-wider text-xs">
+                <AlertTriangle className="w-4 h-4" />
+                Danger Zone
+              </div>
+              <CardTitle className="text-xl font-black tracking-tight text-slate-900">Delete Property Listing</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-slate-500 leading-relaxed font-medium">
+                Unlist and archive this property from the platform. All associated rooms will be deactivated. This action cannot be performed if there are active tenant bookings.
+              </p>
+              <Button
+                type="button"
+                onClick={() => { setIsDeleteDialogOpen(true); setDeleteError(""); }}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl flex items-center gap-2 shadow-sm"
+              >
+                <Trash2 className="w-4 h-4" /> Delete Property
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Delete Confirmation Modal */}
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent className="sm:max-w-[480px] rounded-3xl p-6 bg-white border-0 shadow-2xl">
+              <DialogHeader className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto sm:mx-0">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <DialogTitle className="text-2xl font-black text-slate-900">
+                  Delete Property
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-medium text-sm leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold text-slate-900">"{form.boardingName || 'this property'}"</span>? This will unlist the property and archive all associated rooms from the marketplace.
+                </DialogDescription>
+              </DialogHeader>
+
+              {deleteError && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold space-y-1 animate-in fade-in">
+                  <p className="font-black uppercase tracking-wider text-[10px] text-rose-500">Action Blocked</p>
+                  <p>{deleteError}</p>
+                </div>
+              )}
+
+              <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  className="rounded-xl h-12 font-bold flex-1"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDeleteProperty}
+                  className="rounded-xl h-12 font-black bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-200 flex-1"
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? "Unlisting..." : "Yes, Delete Property"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>

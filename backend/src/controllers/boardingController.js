@@ -148,18 +148,15 @@ export const createBoarding = async (req, res) => {
     });
   } catch (error) {
     console.error("CREATE_BOARDING_UNEXPECTED_ERROR:", error);
-    return res.sta
-
-    tus(500).json({ message: "Server error", error: error.message });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 // Get all boardings with optional filters
 export const getBoardings = async (req, res) => {
   try {
-
     // Extract query parameters for filtering
-    const { q, city, minPrice, maxPrice, totalRooms, status, owner, mine, sortBy } = req.query;
+    const { q, city, minPrice, maxPrice, totalRooms, status, owner, mine, sortBy, includeArchived } = req.query;
 
     // Fetch user preferences to check for specific places
     let preferredLocation = null;
@@ -180,6 +177,13 @@ export const getBoardings = async (req, res) => {
 
     // Build the filter object based on provided query parameters
     const filter = {};
+
+    // Filter out soft-deleted boardings unless admin explicitly asks for them
+    if (isAdmin(req.user) && includeArchived === "true") {
+      // Admin opted to include archived/deleted
+    } else {
+      filter.isDeleted = { $ne: true };
+    }
 
     if (q) {
       filter.$or = [
@@ -217,8 +221,7 @@ export const getBoardings = async (req, res) => {
       } else {
         filter.status = "approved";
       }
-    }
-    else if (!isAdmin(req.user) && mine !== "true") {
+    } else if (!isAdmin(req.user) && mine !== "true") {
       filter.status = "approved";
     }
 
@@ -296,7 +299,7 @@ export const getBoardings = async (req, res) => {
     // Fetch Room stats, Active bookings, Review performance, AND User Prefs in parallel
     const [stats, activeBookings, reviewStats, user] = await Promise.all([
       Room.aggregate([
-        { $match: { boarding: { $in: boardingIds } } },
+        { $match: { boarding: { $in: boardingIds }, isDeleted: { $ne: true } } },
         {
           $group: {
             _id: "$boarding",
@@ -425,12 +428,17 @@ export const getBoardingById = async (req, res) => {
       return res.status(404).json({ message: "Boarding not found" });
     }
 
+    // If soft-deleted, only owner or admin can view
+    if (boarding.isDeleted && !isOwnerOrAdmin(req.user, boarding.owner?._id || boarding.owner)) {
+      return res.status(404).json({ message: "Boarding not found" });
+    }
+
     if (boarding.status !== "approved" && !isOwnerOrAdmin(req.user, boarding.owner?._id || boarding.owner)) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
     if (boarding.type === "room_based") {
-      const rooms = await Room.find({ boarding: id });
+      const rooms = await Room.find({ boarding: id, isDeleted: { $ne: true } });
       const totalRooms = rooms.length;
       const availableRooms = rooms.filter((room) => room.available).length;
       const minPrice = rooms.length > 0 ? Math.min(...rooms.map(r => r.price)) : 0;
@@ -461,7 +469,7 @@ export const updateBoarding = async (req, res) => {
     }
 
     const boarding = await Boarding.findById(id);
-    if (!boarding) {
+    if (!boarding || boarding.isDeleted) {
       return res.status(404).json({ message: "Boarding not found" });
     }
 
@@ -541,17 +549,35 @@ export const updateBoarding = async (req, res) => {
     session.startTransaction();
 
     try {
-      await boarding.save({ session });
-
       if (nextType === "room_based" && Array.isArray(req.body.rooms)) {
         const incomingRooms = req.body.rooms;
-        const existingRooms = await Room.find({ boarding: id }).session(session);
+        const existingRooms = await Room.find({ boarding: id, isDeleted: { $ne: true } }).session(session);
 
-        // Identify rooms to delete
+        // Identify rooms to remove
         const incomingIds = incomingRooms.map(r => r._id?.toString()).filter(Boolean);
         const roomsToDelete = existingRooms.filter(r => !incomingIds.includes(r._id.toString()));
+
         if (roomsToDelete.length > 0) {
-          await Room.deleteMany({ _id: { $in: roomsToDelete.map(r => r._id) } }, { session });
+          // Check if any room marked for deletion has active or pending bookings
+          const roomsToDeleteIds = roomsToDelete.map(r => r._id);
+          const activeBookings = await Booking.find({
+            room: { $in: roomsToDeleteIds },
+            status: { $in: ["pending", "approved"] }
+          }).session(session);
+
+          if (activeBookings.length > 0 && !isAdmin(req.user)) {
+            await session.abortTransaction();
+            return res.status(409).json({
+              message: "Cannot remove room(s) that have active or pending tenant bookings. Please resolve bookings first."
+            });
+          }
+
+          // Soft delete removed rooms
+          await Room.updateMany(
+            { _id: { $in: roomsToDeleteIds } },
+            { isDeleted: true, deletedAt: new Date(), available: false },
+            { session }
+          );
         }
 
         // Identify rooms to update or create
@@ -574,8 +600,12 @@ export const updateBoarding = async (req, res) => {
             await newRoom.save({ session });
           }
         }
+
+        const activeCount = await Room.countDocuments({ boarding: id, isDeleted: { $ne: true } }).session(session);
+        boarding.totalRooms = activeCount;
       }
 
+      await boarding.save({ session });
       await session.commitTransaction();
     } catch (saveError) {
       await session.abortTransaction();
@@ -596,15 +626,16 @@ export const updateBoarding = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 
-// Delete a boarding by id
+// Delete a boarding by id (Soft-delete by default; Admin hard-delete with ?permanent=true)
 export const deleteBoarding = async (req, res) => {
   try {
     const { id } = req.params;
+    const { permanent } = req.query;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid boarding id" });
@@ -616,15 +647,63 @@ export const deleteBoarding = async (req, res) => {
     }
 
     if (!isOwnerOrAdmin(req.user, boarding.owner)) {
-      return res.status(403).json({ message: "Forbidden" });
+      return res.status(403).json({ message: "Forbidden: You do not have permission to delete this boarding" });
     }
 
-    await boarding.deleteOne();
+    // Check for active or pending bookings
+    const activeBookingsCount = await Booking.countDocuments({
+      boarding: id,
+      status: { $in: ["pending", "approved"] }
+    });
 
-    return res.json({ message: "Boarding deleted successfully" });
+    const isUserAdmin = isAdmin(req.user);
+
+    // If not an admin permanent purge, block if active bookings exist
+    if (activeBookingsCount > 0 && !(isUserAdmin && permanent === "true")) {
+      return res.status(409).json({
+        message: `Cannot delete property with ${activeBookingsCount} active or pending tenant booking(s). Please resolve all active bookings first.`
+      });
+    }
+
+    // Admin Permanent Purge (Hard Delete)
+    if (isUserAdmin && permanent === "true") {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        await Room.deleteMany({ boarding: id }).session(session);
+        await Review.deleteMany({ boarding: id }).session(session);
+        await Booking.updateMany(
+          { boarding: id, status: "pending" },
+          { status: "cancelled" }
+        ).session(session);
+        await boarding.deleteOne({ session });
+        await session.commitTransaction();
+      } catch (err) {
+        await session.abortTransaction();
+        throw err;
+      } finally {
+        session.endSession();
+      }
+
+      return res.json({ message: "Boarding and associated records permanently purged" });
+    }
+
+    // Industry Standard Soft Delete & Archival
+    boarding.isDeleted = true;
+    boarding.deletedAt = new Date();
+    boarding.status = "archived";
+    await boarding.save();
+
+    // Mark all associated rooms as deleted & unavailable
+    await Room.updateMany(
+      { boarding: id },
+      { isDeleted: true, deletedAt: new Date(), available: false }
+    );
+
+    return res.json({ message: "Boarding successfully unlisted and archived" });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    console.error("DELETE_BOARDING_ERROR:", error);
+    return res.status(500).json({ message: "Server error while deleting boarding", error: error.message });
   }
 };
 

@@ -84,8 +84,19 @@ const boardingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "archived", "inactive"],
       default: "pending",
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -97,6 +108,8 @@ const boardingSchema = new mongoose.Schema(
 boardingSchema.index({ owner: 1 });
 boardingSchema.index({ city: 1 });
 boardingSchema.index({ status: 1 });
+boardingSchema.index({ isDeleted: 1 });
+boardingSchema.index({ isDeleted: 1, status: 1 });
 boardingSchema.index({ price: 1 });
 boardingSchema.index({ createdAt: -1 });
 boardingSchema.index({ "location": "2dsphere" });

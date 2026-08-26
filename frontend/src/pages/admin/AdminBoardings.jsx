@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
@@ -13,7 +13,12 @@ import {
   ChevronDown,
   BedDouble,
   CreditCard,
-  CheckCircle2
+  CheckCircle2,
+  Trash2,
+  AlertTriangle,
+  Archive,
+  XCircle,
+  Pencil
 } from "lucide-react";
 import PlatformAdminNavbar from "@/components/common/PlatformAdminNavbar";
 import PlatformAdminSidebar from "@/components/common/PlatformAdminSidebar";
@@ -21,14 +26,24 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getBoardings } from "@/api/boardings";
+import { getBoardings, updateBoarding, deleteBoarding } from "@/api/boardings";
 import { getBookings } from "@/api/bookings";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const itemVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -43,6 +58,11 @@ export default function AdminBoardings() {
   const [boardingsList, setBoardingsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [boardingToDelete, setBoardingToDelete] = useState(null);
+  const [isPermanentDelete, setIsPermanentDelete] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
     fetchBoardings();
@@ -54,7 +74,7 @@ export default function AdminBoardings() {
       let data = [];
       
       if (ownerId) {
-        data = await getBoardings({ owner: ownerId });
+        data = await getBoardings({ owner: ownerId, includeArchived: "true" });
       } else if (tenantId) {
         const bookings = await getBookings({ tenantId });
         // Map bookings to unique boardings
@@ -66,7 +86,7 @@ export default function AdminBoardings() {
         });
         data = Array.from(boardingsMap.values());
       } else {
-        data = await getBoardings();
+        data = await getBoardings({ includeArchived: "true" });
       }
       
       setBoardingsList(data);
@@ -74,6 +94,36 @@ export default function AdminBoardings() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      setActionLoading(id);
+      await updateBoarding(id, { status });
+      setBoardingsList(prev => prev.map(b => b._id === id ? { ...b, status } : b));
+    } catch (err) {
+      console.error("Status update error:", err);
+      alert(err.message || "Failed to update status");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteBoarding = async () => {
+    if (!boardingToDelete) return;
+    try {
+      setDeleteLoading(true);
+      setDeleteError("");
+      await deleteBoarding(boardingToDelete._id, { permanent: isPermanentDelete });
+      setBoardingsList(prev => prev.filter(b => b._id !== boardingToDelete._id));
+      setBoardingToDelete(null);
+      setIsPermanentDelete(false);
+    } catch (err) {
+      console.error("Delete error:", err);
+      setDeleteError(err.message || "Failed to delete boarding.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -195,7 +245,7 @@ export default function AdminBoardings() {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-10 border-t xl:border-t-0 xl:border-l border-slate-50 pt-8 xl:pt-0 xl:pl-10 w-full xl:w-auto">
+                        <div className="flex flex-wrap items-center gap-6 sm:gap-10 border-t xl:border-t-0 xl:border-l border-slate-50 pt-8 xl:pt-0 xl:pl-10 w-full xl:w-auto justify-between xl:justify-start">
                           <div className="space-y-1 min-w-[120px]">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate / Month</p>
                             <div className="flex items-center gap-3">
@@ -206,6 +256,62 @@ export default function AdminBoardings() {
                               </span>
                             </div>
                           </div>
+
+                          <div className="flex items-center gap-3">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={actionLoading === boarding._id}
+                                  className="h-12 w-12 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-all shadow-sm"
+                                >
+                                  <MoreHorizontal className="w-5 h-5 text-slate-700" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-slate-100 bg-white">
+                                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-3 py-1">
+                                  Moderation Controls
+                                </DropdownMenuLabel>
+                                {boarding.status !== 'approved' && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleUpdateStatus(boarding._id, 'approved')}
+                                    className="rounded-xl font-bold text-xs text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-2.5"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" /> Approve Listing
+                                  </DropdownMenuItem>
+                                )}
+                                {boarding.status !== 'rejected' && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleUpdateStatus(boarding._id, 'rejected')}
+                                    className="rounded-xl font-bold text-xs text-amber-600 focus:bg-amber-50 focus:text-amber-700 cursor-pointer p-2.5"
+                                  >
+                                    <XCircle className="w-4 h-4 mr-2 text-amber-500" /> Reject Listing
+                                  </DropdownMenuItem>
+                                )}
+                                {boarding.status !== 'archived' && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleUpdateStatus(boarding._id, 'archived')}
+                                    className="rounded-xl font-bold text-xs text-slate-600 focus:bg-slate-50 focus:text-slate-700 cursor-pointer p-2.5"
+                                  >
+                                    <Archive className="w-4 h-4 mr-2 text-slate-400" /> Archive / Unlist
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                  <Link to={`/boardings/edit/${boarding._id}`} className="rounded-xl font-bold text-xs text-slate-700 focus:bg-slate-50 flex items-center cursor-pointer p-2.5">
+                                    <Pencil className="w-4 h-4 mr-2 text-slate-400" /> Edit Details
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => { setBoardingToDelete(boarding); setDeleteError(""); setIsPermanentDelete(false); }}
+                                  className="rounded-xl font-bold text-xs text-rose-600 focus:bg-rose-50 focus:text-rose-700 cursor-pointer p-2.5"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2 text-rose-500" /> Delete Property
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -214,6 +320,69 @@ export default function AdminBoardings() {
               </div>
             </AnimatePresence>
           )}
+
+          {/* Admin Delete Confirmation Modal */}
+          <Dialog open={Boolean(boardingToDelete)} onOpenChange={(open) => { if (!open) setBoardingToDelete(null); }}>
+            <DialogContent className="sm:max-w-[480px] rounded-3xl p-6 bg-white border-0 shadow-2xl">
+              <DialogHeader className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto sm:mx-0">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <DialogTitle className="text-2xl font-black text-slate-900">
+                  Delete Property
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-medium text-sm leading-relaxed">
+                  Choose how to handle the deletion of <span className="font-bold text-slate-900">"{boardingToDelete?.boardingName}"</span>.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50/50 space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isPermanentDelete}
+                    onChange={(e) => setIsPermanentDelete(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300"
+                  />
+                  <div className="space-y-1">
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                      Permanent Database Purge (Hard Delete)
+                    </span>
+                    <p className="text-[11px] font-medium text-slate-500 leading-snug">
+                      Check this box ONLY for spam/fraud. Completely removes the boarding, rooms, and reviews from the database.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {deleteError && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold space-y-1 animate-in fade-in">
+                  <p className="font-black uppercase tracking-wider text-[10px] text-rose-500">Action Blocked</p>
+                  <p>{deleteError}</p>
+                </div>
+              )}
+
+              <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setBoardingToDelete(null)}
+                  className="rounded-xl h-12 font-bold flex-1"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDeleteBoarding}
+                  className="rounded-xl h-12 font-black bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-200 flex-1"
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? "Processing..." : isPermanentDelete ? "Hard Purge Property" : "Archive & Unlist"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Quality Audit Banner */}
           {!ownerId && !tenantId && (

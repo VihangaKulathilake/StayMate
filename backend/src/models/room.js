@@ -43,6 +43,17 @@ const roomSchema = new mongoose.Schema(
     images: {
       type: [String],
       default: []
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null
     }
   },
   {
@@ -52,5 +63,6 @@ const roomSchema = new mongoose.Schema(
 
 roomSchema.index({ boarding: 1 });
 roomSchema.index({ available: 1 });
+roomSchema.index({ isDeleted: 1 });
 
 export default mongoose.model("Room", roomSchema);

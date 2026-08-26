@@ -22,7 +22,7 @@ router
 
 router
   .route("/:id")
-  .get(getBoardingById)
+  .get(optionalProtect, getBoardingById)
   .put(protect, authorizeRoles("admin", "landlord"), updateBoarding)
   .delete(protect, authorizeRoles("admin", "landlord"), deleteBoarding);
 

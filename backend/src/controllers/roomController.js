@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import Boarding from "../models/boarding.js";
 import Room from "../models/room.js";
-import { isOwnerOrAdmin } from "../utils/authHelpers.js";
+import Booking from "../models/booking.js";
+import { isAdmin, isOwnerOrAdmin } from "../utils/authHelpers.js";
 import { normalizeStringArray } from "../utils/formatHelpers.js";
 
 export const createRoom = async (req, res) => {
@@ -71,7 +72,7 @@ export const createRoom = async (req, res) => {
     const room = await Room.create(roomData);
 
     // Update totalRooms in Boarding
-    const roomCount = await Room.countDocuments({ boarding: boardingId });
+    const roomCount = await Room.countDocuments({ boarding: boardingId, isDeleted: { $ne: true } });
     await Boarding.findByIdAndUpdate(boardingId, { totalRooms: roomCount });
 
     return res.status(201).json({
@@ -79,7 +80,7 @@ export const createRoom = async (req, res) => {
       room,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -96,11 +97,11 @@ export const getRoomsByBoarding = async (req, res) => {
       return res.status(404).json({ message: "Boarding not found" });
     }
 
-    const rooms = await Room.find({ boarding: boardingId }).sort({ createdAt: -1 });
+    const rooms = await Room.find({ boarding: boardingId, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
 
     return res.json(rooms);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -172,7 +173,7 @@ export const updateRoom = async (req, res) => {
       room,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -189,7 +190,7 @@ export const deleteRoom = async (req, res) => {
     }
 
     const room = await Room.findById(id);
-    if (!room) {
+    if (!room || room.isDeleted) {
       return res.status(404).json({ message: "Room not found" });
     }
 
@@ -206,15 +207,32 @@ export const deleteRoom = async (req, res) => {
       return res.status(400).json({ message: "Rooms can only be managed for room_based boardings" });
     }
 
+    // Check for active bookings
+    const activeBooking = await Booking.findOne({
+      room: id,
+      status: { $in: ["pending", "approved"] }
+    });
+
+    if (activeBooking && !isAdmin(req.user)) {
+      return res.status(409).json({
+        message: "Cannot delete room with active or pending tenant bookings. Please resolve bookings first."
+      });
+    }
+
     const boardingId = room.boarding;
-    await room.deleteOne();
+    
+    // Soft delete room to maintain historical booking references
+    room.isDeleted = true;
+    room.deletedAt = new Date();
+    room.available = false;
+    await room.save();
 
     // Update totalRooms in Boarding
-    const roomCount = await Room.countDocuments({ boarding: boardingId });
+    const roomCount = await Room.countDocuments({ boarding: boardingId, isDeleted: { $ne: true } });
     await Boarding.findByIdAndUpdate(boardingId, { totalRooms: roomCount });
 
     return res.json({ message: "Room deleted successfully" });
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };

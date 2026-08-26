@@ -48,10 +48,13 @@ export const updateBoarding = async (boardingId, boardingData) => {
   }
 };
 
-export const deleteBoarding = async (boardingId) => {
+export const deleteBoarding = async (boardingId, options = {}) => {
   assertBoardingId(boardingId);
   try {
-    const { data } = await axiosInstance.delete(`${BOARDINGS_BASE}/${boardingId}`);
+    const { permanent } = options;
+    const { data } = await axiosInstance.delete(`${BOARDINGS_BASE}/${boardingId}`, {
+      params: permanent ? { permanent: "true" } : {}
+    });
     return data;
   } catch (error) {
     throw toApiError(error, "Failed to delete boarding.");

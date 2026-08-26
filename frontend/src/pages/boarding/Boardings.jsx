@@ -7,6 +7,8 @@ import {
   BedDouble,
   Users,
   Pencil,
+  Trash2,
+  AlertTriangle,
   Search,
   Grid2X2,
   List,
@@ -23,7 +25,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { getBoardings } from "@/api/boardings";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getBoardings, deleteBoarding } from "@/api/boardings";
 import { getValidImageUrl, onImageError } from "@/lib/images";
 
 const containerVariants = {
@@ -45,6 +55,9 @@ export default function Boardings() {
   const [filterType, setFilterType] = useState("all");
   const [boardingsList, setBoardingsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   React.useEffect(() => {
     fetchBoardings();
@@ -59,6 +72,22 @@ export default function Boardings() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!propertyToDelete) return;
+    try {
+      setDeleteLoading(true);
+      setDeleteError("");
+      await deleteBoarding(propertyToDelete._id);
+      setBoardingsList(prev => prev.filter(p => p._id !== propertyToDelete._id));
+      setPropertyToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete property:", err);
+      setDeleteError(err.message || "Failed to delete boarding.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -215,11 +244,20 @@ export default function Boardings() {
                             </div>
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">+{p.totalRooms - (p.availableRooms || 0)} Tenants</span>
                           </div>
-                          <Link to={`/boardings/edit/${p._id}`} className="no-underline">
-                            <Button size="icon" className="h-12 w-12 rounded-2xl bg-slate-900 text-white hover:bg-indigo-600 shadow-xl transition-all">
-                              <Pencil className="w-5 h-5" />
+                          <div className="flex items-center gap-2">
+                            <Link to={`/boardings/edit/${p._id}`} className="no-underline">
+                              <Button size="icon" className="h-12 w-12 rounded-2xl bg-slate-900 text-white hover:bg-indigo-600 shadow-xl transition-all">
+                                <Pencil className="w-5 h-5" />
+                              </Button>
+                            </Link>
+                            <Button
+                              size="icon"
+                              onClick={() => { setPropertyToDelete(p); setDeleteError(""); }}
+                              className="h-12 w-12 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-100 shadow-md transition-all active:scale-95"
+                            >
+                              <Trash2 className="w-5 h-5" />
                             </Button>
-                          </Link>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -266,7 +304,7 @@ export default function Boardings() {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-10 w-full lg:w-auto border-t lg:border-t-0 lg:border-l border-slate-50 pt-6 lg:pt-0 lg:pl-10">
+                        <div className="flex flex-wrap items-center gap-6 sm:gap-10 w-full lg:w-auto border-t lg:border-t-0 lg:border-l border-slate-50 pt-6 lg:pt-0 lg:pl-10">
                           <div className="space-y-1">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Tenants</p>
                             <p className="text-xl font-black text-slate-800">{p.totalRooms - (p.availableRooms || 0)} Residents</p>
@@ -278,11 +316,20 @@ export default function Boardings() {
                               <Progress value={p.totalRooms ? ((p.totalRooms - p.availableRooms) / p.totalRooms) * 100 : 0} className="w-24 h-2 bg-slate-50" indicatorClassName="bg-indigo-600" />
                             </div>
                           </div>
-                          <Link to={`/boardings/edit/${p._id}`} className="no-underline shrink-0 ml-auto lg:ml-0">
-                            <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-100 font-black text-slate-800 hover:bg-slate-50 hover:border-indigo-600/30 transition-all flex items-center gap-3 active:scale-95">
-                              <Pencil className="w-4 h-4" /> Manage
+                          <div className="flex items-center gap-2 shrink-0 ml-auto lg:ml-0">
+                            <Link to={`/boardings/edit/${p._id}`} className="no-underline">
+                              <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-100 font-black text-slate-800 hover:bg-slate-50 hover:border-indigo-600/30 transition-all flex items-center gap-3 active:scale-95">
+                                <Pencil className="w-4 h-4" /> Manage
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              onClick={() => { setPropertyToDelete(p); setDeleteError(""); }}
+                              className="h-14 w-14 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-100 transition-all active:scale-95 flex items-center justify-center p-0 shadow-sm"
+                            >
+                              <Trash2 className="w-5 h-5" />
                             </Button>
-                          </Link>
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -291,6 +338,50 @@ export default function Boardings() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Delete Confirmation Modal */}
+          <Dialog open={Boolean(propertyToDelete)} onOpenChange={(open) => { if (!open) setPropertyToDelete(null); }}>
+            <DialogContent className="sm:max-w-[480px] rounded-3xl p-6 bg-white border-0 shadow-2xl">
+              <DialogHeader className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto sm:mx-0">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <DialogTitle className="text-2xl font-black text-slate-900">
+                  Delete Property
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-medium text-sm leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold text-slate-900">"{propertyToDelete?.boardingName}"</span>? This will unlist the property and archive all associated rooms from the marketplace.
+                </DialogDescription>
+              </DialogHeader>
+
+              {deleteError && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold space-y-1 animate-in fade-in">
+                  <p className="font-black uppercase tracking-wider text-[10px] text-rose-500">Action Blocked</p>
+                  <p>{deleteError}</p>
+                </div>
+              )}
+
+              <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPropertyToDelete(null)}
+                  className="rounded-xl h-12 font-bold flex-1"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  className="rounded-xl h-12 font-black bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-200 flex-1"
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? "Unlisting..." : "Yes, Delete Property"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Stats Bar */}
           <motion.div
