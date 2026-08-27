@@ -32,16 +32,18 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { clearAuthSession, getCurrentUser } from "@/lib/auth";
 import Logo from "@/components/common/Logo";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCurrentUser, logout } from "@/store/slices/authSlice";
 
 export default function AdminNavbar() {
     const navigate = useNavigate();
-    const authUser = getCurrentUser();
+    const dispatch = useAppDispatch();
+    const authUser = useAppSelector(selectCurrentUser);
     const initials = (authUser?.name || 'AD').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
     const handleLogout = () => {
-        clearAuthSession();
+        dispatch(logout());
         navigate("/login", { replace: true });
     };
 

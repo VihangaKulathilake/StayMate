@@ -20,10 +20,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { registerUser } from "@/api/auth";
 import { REGISTER_MESSAGES, getRegisterErrorMessage } from "@/messages/authMessages";
 import AuthStatusMessage from "@/components/common/AuthStatusMessage";
-import { saveAuthSession } from "@/lib/auth";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/store/slices/authSlice";
 
 export default function Register() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -63,7 +65,9 @@ export default function Register() {
         role: formData.role,
       });
 
-      saveAuthSession({ token: data.token, user: data.user });
+      if (data?.token && data?.user) {
+        dispatch(setCredentials({ token: data.token, user: data.user }));
+      }
 
       setSuccess(REGISTER_MESSAGES.success);
       setFormData({

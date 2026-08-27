@@ -20,9 +20,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/store/slices/authSlice";
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -46,7 +49,7 @@ export default function Login() {
       setIsSubmitting(true);
       const data = await loginUser(formData);
 
-      saveAuthSession({ token: data.token, user: data.user });
+      dispatch(setCredentials({ token: data.token, user: data.user }));
       const userRole = data?.user?.role;
       const redirectPath = getDefaultRouteByRole(userRole);
 
@@ -283,7 +286,7 @@ export default function Login() {
                     setIsSubmitting(true);
                     try {
                       const data = await googleLogin(credentialResponse.credential);
-                      saveAuthSession({ token: data.token, user: data.user });
+                      dispatch(setCredentials({ token: data.token, user: data.user }));
                       const userRole = data?.user?.role;
                       const redirectPath = getDefaultRouteByRole(userRole);
                       navigate(redirectPath, { replace: true });

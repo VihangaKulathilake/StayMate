@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { clearAuthSession, getCurrentUser } from "@/lib/auth";
 import Logo from "@/components/common/Logo";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCurrentUser, logout } from "@/store/slices/authSlice";
 
 const links = [
   { name: "Dashboard", href: "/admin/dashboard", icon: BarChart3 },
@@ -26,11 +27,12 @@ const links = [
 
 export default function PlatformAdminNavbar() {
   const navigate = useNavigate();
-  const authUser = getCurrentUser();
+  const dispatch = useAppDispatch();
+  const authUser = useAppSelector(selectCurrentUser);
   const initials = (authUser?.name || 'SA').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   const handleLogout = () => {
-    clearAuthSession();
+    dispatch(logout());
     navigate("/login", { replace: true });
   };
 

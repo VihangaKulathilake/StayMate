@@ -1,12 +1,14 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { getCurrentUser, getDefaultRouteByRole, isAuthenticated } from "@/lib/auth";
+import { useAppSelector } from "@/store/hooks";
+import { selectAuth } from "@/store/slices/authSlice";
+import { getDefaultRouteByRole } from "@/lib/auth";
 
 export default function ProtectedRoute({ allowedRoles = [] }) {
   const location = useLocation();
-  const user = getCurrentUser();
+  const { user, isAuthenticated } = useAppSelector(selectAuth);
 
-  if (!isAuthenticated()) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

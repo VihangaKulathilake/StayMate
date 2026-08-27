@@ -31,12 +31,14 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { clearAuthSession, getCurrentUser } from "@/lib/auth";
 import Logo from "@/components/common/Logo";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectCurrentUser, logout } from "@/store/slices/authSlice";
 
 export default function UserNavbar() {
     const navigate = useNavigate();
-    const user = getCurrentUser();
+    const dispatch = useAppDispatch();
+    const user = useAppSelector(selectCurrentUser);
 
     const getInitials = (name) => {
         if (!name) return "U";
@@ -48,7 +50,7 @@ export default function UserNavbar() {
     };
 
     const handleLogout = () => {
-        clearAuthSession();
+        dispatch(logout());
         navigate("/login", { replace: true });
     };
 
