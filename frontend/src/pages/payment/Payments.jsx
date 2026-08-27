@@ -27,7 +27,13 @@ import UserSidebar from "@/components/common/UserSidebar";
 import { getCurrentUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import PayModal from "@/components/payment/PayModal";
-import DynamicSearchInput from "@/components/common/DynamicSearchInput";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchPayments as fetchPaymentsThunk,
+  selectPayments,
+  selectPaymentsLoading,
+  invalidatePaymentCache
+} from "@/store/slices/paymentSlice";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -43,40 +49,33 @@ const itemVariants = {
 };
 
 export default function Payments() {
-  const [paymentsList, setPaymentsList] = React.useState([]);
-  const [summary, setSummary] = React.useState({ collected: 0, pending: 0, overdue: 0 });
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
+  const dispatch = useAppDispatch();
+  const reduxPayments = useAppSelector(selectPayments);
+  const reduxLoading = useAppSelector(selectPaymentsLoading);
+
   const [payModalOpen, setPayModalOpen] = React.useState(false);
   const [selectedPayment, setSelectedPayment] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
 
+  const paymentsList = reduxPayments || [];
+  const loading = reduxLoading && reduxPayments.length === 0;
+
+  const summary = React.useMemo(() => {
+    const collected = paymentsList.filter(p => p.status === 'completed').reduce((acc, p) => acc + (p.amount || 0), 0);
+    const pending = paymentsList.filter(p => p.status === 'pending').reduce((acc, p) => acc + (p.amount || 0), 0);
+    return { collected, pending, overdue: 0 };
+  }, [paymentsList]);
+
   React.useEffect(() => {
-    fetchPayments();
-  }, []);
-
-  const fetchPayments = async () => {
-    try {
-      setLoading(true);
-      const data = await getPayments();
-      setPaymentsList(data);
-
-      const collected = data.filter(p => p.status === 'completed').reduce((acc, p) => acc + (p.amount || 0), 0);
-      const pending = data.filter(p => p.status === 'pending').reduce((acc, p) => acc + (p.amount || 0), 0);
-
-      setSummary({ collected, pending, overdue: 0 });
-    } catch (err) {
-      setError(err.message || "Failed to load payments");
-    } finally {
-      setLoading(false);
-    }
-  };
+    dispatch(fetchPaymentsThunk());
+  }, [dispatch]);
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       await updatePaymentStatus(id, newStatus);
-      fetchPayments(); // Refresh list
+      dispatch(invalidatePaymentCache());
+      dispatch(fetchPaymentsThunk({ forceRefresh: true }));
     } catch (err) {
       alert("Failed to update status");
     }

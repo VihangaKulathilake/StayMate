@@ -37,6 +37,14 @@ import { getBookings, requestStayExtension } from "@/api/bookings";
 import { format } from "date-fns";
 import DynamicSearchInput from "@/components/common/DynamicSearchInput";
 
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+    fetchUserBookings,
+    selectBookings,
+    selectBookingsLoading,
+    invalidateBookingCache
+} from '@/store/slices/bookingSlice';
+
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -48,9 +56,15 @@ const itemVariants = {
 };
 
 export default function MyBookings() {
-    const [bookingsList, setBookingsList] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
+    const dispatch = useAppDispatch();
+    const reduxBookings = useAppSelector(selectBookings);
+    const reduxLoading = useAppSelector(selectBookingsLoading);
+
     const [searchTerm, setSearchTerm] = React.useState("");
+
+    // Instant 0ms cached display if items exist in Redux
+    const bookingsList = reduxBookings || [];
+    const loading = reduxLoading && reduxBookings.length === 0;
 
     // Extension Modal State
     const [isExtensionModalOpen, setIsExtensionModalOpen] = React.useState(false);
@@ -62,20 +76,8 @@ export default function MyBookings() {
     const [extensionSuccess, setExtensionSuccess] = React.useState(false);
 
     React.useEffect(() => {
-        fetchBookings();
-    }, []);
-
-    const fetchBookings = async () => {
-        try {
-            setLoading(true);
-            const data = await getBookings();
-            setBookingsList(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        dispatch(fetchUserBookings());
+    }, [dispatch]);
 
     const handleOpenExtensionModal = (booking) => {
         setSelectedBookingForExtension(booking);
@@ -97,7 +99,8 @@ export default function MyBookings() {
                 reason: extensionReason,
             });
             setExtensionSuccess(true);
-            fetchBookings();
+            dispatch(invalidateBookingCache());
+            dispatch(fetchUserBookings({ forceRefresh: true }));
             setTimeout(() => {
                 setIsExtensionModalOpen(false);
                 setExtensionSuccess(false);

@@ -6,6 +6,8 @@ const initialState = {
   selectedBoarding: null,
   loading: false,
   error: null,
+  lastFetched: null,
+  cacheTTL: 60000, // 60 seconds client-side cache window
   filters: {
     searchQuery: "",
     selectedCategory: "All",
@@ -19,10 +21,20 @@ const initialState = {
 // Async Thunks
 export const fetchBoardings = createAsyncThunk(
   "boardings/fetchBoardings",
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, { getState, rejectWithValue }) => {
     try {
+      const state = getState().boardings;
+      const now = Date.now();
+      const isFresh = state.lastFetched && (now - state.lastFetched < state.cacheTTL);
+      const isParamEmpty = Object.keys(params).length === 0;
+
+      // Instant 0ms cache return if fresh and not explicitly forced
+      if (isFresh && isParamEmpty && state.boardings.length > 0 && !params.forceRefresh) {
+        return { data: state.boardings, fromCache: true };
+      }
+
       const data = await getBoardings(params);
-      return data;
+      return { data, fromCache: false, fetchedAt: now };
     } catch (err) {
       return rejectWithValue(err.message || "Failed to fetch boardings.");
     }
@@ -63,18 +75,27 @@ export const boardingSlice = createSlice({
     },
     clearSelectedBoarding: (state) => {
       state.selectedBoarding = null;
+    },
+    invalidateBoardingCache: (state) => {
+      state.lastFetched = null;
     }
   },
   extraReducers: (builder) => {
     builder
       // Fetch Boardings
       .addCase(fetchBoardings.pending, (state) => {
-        state.loading = true;
+        // Only trigger visible spinner if we have NO cached items
+        if (state.boardings.length === 0) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchBoardings.fulfilled, (state, action) => {
         state.loading = false;
-        state.boardings = action.payload;
+        if (!action.payload.fromCache) {
+          state.boardings = action.payload.data;
+          state.lastFetched = action.payload.fetchedAt;
+        }
         state.error = null;
       })
       .addCase(fetchBoardings.rejected, (state, action) => {
@@ -102,7 +123,8 @@ export const {
   setSortBy,
   setPriceRange,
   resetFilters,
-  clearSelectedBoarding
+  clearSelectedBoarding,
+  invalidateBoardingCache,
 } = boardingSlice.actions;
 
 // Selectors
@@ -110,5 +132,6 @@ export const selectBoardings = (state) => state.boardings.boardings;
 export const selectSelectedBoarding = (state) => state.boardings.selectedBoarding;
 export const selectBoardingLoading = (state) => state.boardings.loading;
 export const selectBoardingFilters = (state) => state.boardings.filters;
+export const selectBoardingLastFetched = (state) => state.boardings.lastFetched;
 
 export default boardingSlice.reducer;

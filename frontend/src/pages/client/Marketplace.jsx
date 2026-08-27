@@ -18,6 +18,14 @@ import { Sparkles } from "lucide-react";
 import LocationSearch from '../../components/common/LocationSearch';
 import DynamicSearchInput from '../../components/common/DynamicSearchInput';
 
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+    fetchBoardings as fetchBoardingsThunk,
+    selectBoardings,
+    selectBoardingLoading,
+    invalidateBoardingCache
+} from '@/store/slices/boardingSlice';
+
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -42,9 +50,11 @@ const itemVariants = {
 
 export default function Marketplace() {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [boardingsList, setBoardingsList] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const reduxBoardings = useAppSelector(selectBoardings);
+    const reduxLoading = useAppSelector(selectBoardingLoading);
+
     const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [sortBy, setSortBy] = useState("recommended");
@@ -61,17 +71,26 @@ export default function Marketplace() {
     });
     const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
+    // Instant 0ms cached filtering in memory
+    const boardingsList = React.useMemo(() => {
+        let list = reduxBoardings || [];
+        if (selectedCategory !== "All") {
+            const catLower = selectedCategory.toLowerCase();
+            list = list.filter(b =>
+                b.boardingName?.toLowerCase().includes(catLower) ||
+                b.description?.toLowerCase().includes(catLower) ||
+                b.type?.toLowerCase().includes(catLower)
+            );
+        }
+        return list;
+    }, [reduxBoardings, selectedCategory]);
+
+    // Only show full-screen blocking loader if we have zero cached items
+    const loading = reduxLoading && reduxBoardings.length === 0;
+
     React.useEffect(() => {
         fetchUserPrefs();
 
-        // Clean all filters when exiting the marketplace
-        // The return () => { ... } part is like saying: "And hey,
-        // before you clock out and leave this page,
-        // I need you to do exactly this one last chore."
-        // This is called a cleanup function.
-        // The cleanup function runs when the component unmounts
-        // or before the effect runs again (if dependencies change).
-        // Here, it runs when the user leaves the Marketplace page.
         return () => {
             updatePreferences({
                 preferredLocations: [],
@@ -86,41 +105,23 @@ export default function Marketplace() {
 
     React.useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            fetchBoardings();
+            loadBoardings();
 
             const params = new URLSearchParams(searchParams);
             if (searchQuery) params.set("q", searchQuery);
             else params.delete("q");
             setSearchParams(params, { replace: true });
-        }, 500);
+        }, 300);
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchQuery, selectedCategory, sortBy]);
 
-    const fetchBoardings = async () => {
-        try {
-            setLoading(true);
-            const params = {};
-            if (searchQuery) params.q = searchQuery;
-
-            if (sortBy) params.sortBy = sortBy;
-
-            let data = await getBoardings(params);
-
-            if (selectedCategory !== "All") {
-                const catLower = selectedCategory.toLowerCase();
-                data = data.filter(b =>
-                    b.boardingName?.toLowerCase().includes(catLower) ||
-                    b.description?.toLowerCase().includes(catLower) ||
-                    b.type?.toLowerCase().includes(catLower)
-                );
-            }
-            setBoardingsList(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+    const loadBoardings = (force = false) => {
+        const params = {};
+        if (searchQuery) params.q = searchQuery;
+        if (sortBy) params.sortBy = sortBy;
+        if (force) params.forceRefresh = true;
+        dispatch(fetchBoardingsThunk(params));
     };
 
     const fetchUserPrefs = async () => {
@@ -145,7 +146,8 @@ export default function Marketplace() {
             setIsSavingPrefs(true);
             await updatePreferences(prefs);
             setIsPrefsModalOpen(false);
-            fetchBoardings(); // Refresh results with new recommendations
+            dispatch(invalidateBoardingCache());
+            loadBoardings(true); // Force fresh recommendation calculation
         } catch (error) {
             console.error("Error saving preferences:", error);
         } finally {
