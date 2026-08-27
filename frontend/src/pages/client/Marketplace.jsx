@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getBoardings } from "@/api/boardings";
 import { getMe, updatePreferences } from "@/api/users";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import LocationSearch from '../../components/common/LocationSearch';
+import DynamicSearchInput from '../../components/common/DynamicSearchInput';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -40,6 +41,7 @@ const itemVariants = {
 };
 
 export default function Marketplace() {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [boardingsList, setBoardingsList] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -165,13 +167,42 @@ export default function Marketplace() {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8"
                     >
-                        <div className="w-full md:w-1/2 relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
-                            <Input
-                                placeholder="Where do you want to stay?"
-                                className="w-full pl-11 sm:pl-12 h-12 sm:h-14 bg-white border-none shadow-sm rounded-2xl text-base sm:text-lg focus-visible:ring-primary/20 transition-all focus:shadow-md"
+                        <div className="w-full md:w-1/2">
+                            <DynamicSearchInput
+                                placeholder="Where do you want to stay in Sri Lanka?"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={setSearchQuery}
+                                results={boardingsList}
+                                inputClassName="h-12 sm:h-14 text-sm sm:text-base border-none shadow-sm rounded-2xl"
+                                emptyMessage="No boarding places match your query."
+                                maxSuggestions={6}
+                                renderItem={(item) => (
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-100 shadow-sm">
+                                            <img 
+                                                src={item.images?.[0] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=100"} 
+                                                alt={item.boardingName} 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h5 className="font-black text-slate-900 text-xs truncate">{item.boardingName}</h5>
+                                                <Badge className="text-[9px] px-1.5 py-0 bg-indigo-50 text-indigo-700 border-none font-bold uppercase">
+                                                    {item.type === 'room_based' ? 'Room' : 'House'}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 font-medium truncate">{item.city || item.address}</p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <span className="text-xs font-black text-indigo-600">Rs. {item.price?.toLocaleString()}</span>
+                                            <span className="text-[9px] text-slate-400 block font-bold">/ mo</span>
+                                        </div>
+                                    </div>
+                                )}
+                                onSelect={(item) => {
+                                    navigate(`/boarding/${item._id}`);
+                                }}
                             />
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">

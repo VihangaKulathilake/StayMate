@@ -71,21 +71,14 @@ export default function UserNavbar() {
                 </div>
 
 
-                <div className="flex items-center gap-4">
-                    {/* Search Bar */}
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const q = new FormData(e.target).get('q');
-                        if (q) navigate(`/marketplace?q=${encodeURIComponent(q)}`);
-                    }} className="hidden md:flex relative w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <Input
-                            name="q"
-                            type="search"
-                            placeholder="Search boardings..."
-                            className="pl-9 h-9 bg-slate-50 border-slate-200 focus-visible:ring-primary/20 rounded-full"
-                        />
-                    </form>
+                <div className="flex items-center gap-3 sm:gap-4">
+                    {/* Messages / Support Icon */}
+                    <Link to="/contact">
+                        <Button variant="ghost" size="icon" className="relative text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full">
+                            <MessageSquare className="w-5 h-5" />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-600 rounded-full border-2 border-white"></span>
+                        </Button>
+                    </Link>
 
                     {/* User Profile Dropdown */}
                     <DropdownMenu>

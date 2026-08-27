@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import AdminNavbar from "@/components/common/AdminNavbar";
 import Sidebar from "@/components/common/Sidebar";
+import DynamicSearchInput from "@/components/common/DynamicSearchInput";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ const cardVariants = {
 };
 
 export default function Boardings() {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -125,13 +127,41 @@ export default function Boardings() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full xl:w-auto">
-              <div className="relative group w-full sm:w-80">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                <Input
-                  placeholder="Search properties..."
-                  className="h-12 sm:h-14 pl-12 pr-4 rounded-[1.25rem] border-none bg-white shadow-xl shadow-slate-200/50 focus:ring-2 focus:ring-indigo-600/20 font-bold text-sm"
+              <div className="w-full sm:w-80">
+                <DynamicSearchInput
+                  placeholder="Search portfolio properties..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={setSearchTerm}
+                  results={filteredProperties}
+                  inputClassName="h-12 sm:h-14 rounded-[1.25rem] border-none shadow-xl shadow-slate-200/50 font-bold text-sm"
+                  emptyMessage="No properties match your query."
+                  renderItem={(item) => (
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-slate-100 shadow-sm">
+                        <img 
+                          src={getValidImageUrl(item.images)} 
+                          onError={onImageError}
+                          alt={item.boardingName} 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-black text-slate-900 text-xs truncate">{item.boardingName}</span>
+                          <Badge className="text-[8px] px-1.5 py-0 bg-indigo-50 text-indigo-700 border-none font-bold uppercase">
+                            {item.type === 'room_based' ? 'Room' : 'Full'}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-medium truncate">{item.address || item.city}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs font-black text-slate-900">Rs. {item.price?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
+                  onSelect={(item) => {
+                    navigate(`/boardings/edit/${item._id}`);
+                  }}
                 />
               </div>
               <div className="flex items-center justify-between sm:justify-start bg-white p-1 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50">
