@@ -30,6 +30,11 @@ const bookingSchema = new mongoose.Schema(
       default: 1
     },
 
+    monthlyRent: {
+      type: Number,
+      default: 0
+    },
+
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "cancelled"],
@@ -39,6 +44,41 @@ const bookingSchema = new mongoose.Schema(
     payment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Payment"
+    },
+
+    payments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Payment"
+      }
+    ],
+
+    extensionRequest: {
+      status: {
+        type: String,
+        enum: ["none", "pending", "approved", "rejected"],
+        default: "none"
+      },
+      additionalMonths: {
+        type: Number,
+        default: 0
+      },
+      reason: {
+        type: String,
+        default: ""
+      },
+      requestedAt: {
+        type: Date,
+        default: null
+      },
+      reviewedAt: {
+        type: Date,
+        default: null
+      },
+      landlordNote: {
+        type: String,
+        default: ""
+      }
     }
   },
   {
@@ -47,6 +87,8 @@ const bookingSchema = new mongoose.Schema(
 );
 
 bookingSchema.index({ boarding: 1 });
+bookingSchema.index({ tenant: 1 });
 bookingSchema.index({ status: 1 });
+bookingSchema.index({ "extensionRequest.status": 1 });
 
 export default mongoose.model("Booking", bookingSchema);

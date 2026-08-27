@@ -5,6 +5,8 @@ import {
     getBookingById,
     getBookings,
     updateBookingStatus,
+    requestExtension,
+    respondExtension,
 } from "../controllers/bookingController.js";
 import { authorizeRoles, protect } from "../middleware/authMiddleware.js";
 
@@ -17,8 +19,12 @@ router
 
 router
     .route("/:id")
-    .get(getBookingById)
+    .get(protect, getBookingById)
     .put(protect, authorizeRoles("admin", "landlord"), updateBookingStatus)
     .delete(protect, authorizeRoles("admin", "landlord"), deleteBooking);
+
+// Formal Stay Extension Workflow
+router.post("/:id/request-extension", protect, authorizeRoles("tenant"), requestExtension);
+router.put("/:id/respond-extension", protect, authorizeRoles("admin", "landlord"), respondExtension);
 
 export default router;

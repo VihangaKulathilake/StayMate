@@ -34,7 +34,8 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
 
   const isRoomBased = boarding?.type === 'room_based';
   const basePrice = isRoomBased ? (room?.price || 0) : (boarding?.price || 0);
-  const totalAmount = basePrice * durationMonths;
+  const initialDueAmount = basePrice;
+  const totalLeaseValue = basePrice * durationMonths;
 
   const handleNext = () => {
     if (!checkInDate) {
@@ -72,26 +73,30 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
   const renderStep = () => {
     if (step === 3 && successData) {
       return (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-6">
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-5">
             <CheckCircle2 className="w-10 h-10 text-emerald-600" />
           </div>
           <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Reservation Secured</h3>
-          <p className="text-slate-500 font-medium mb-8 max-w-sm">
-            Your booking request has been securely processed. A payment ledger has been generated.
+          <p className="text-slate-500 font-medium text-sm mb-6 max-w-sm">
+            Your stay reservation has been created. A monthly installment schedule has been added to your payment ledger.
           </p>
-          <div className="w-full bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4 text-sm font-bold text-slate-700 text-left mb-8">
+          <div className="w-full bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-3 text-sm font-bold text-slate-700 text-left mb-6">
             <div className="flex justify-between">
               <span className="text-slate-400 uppercase tracking-widest text-[10px]">Reference ID</span>
               <span>{successData._id.substring(0, 8).toUpperCase()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400 uppercase tracking-widest text-[10px]">Security Deposit</span>
-              <span className="text-slate-900">Rs. {successData.payment?.amount?.toLocaleString() || totalAmount.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-slate-400 uppercase tracking-widest text-[10px]">Check-In</span>
               <span>{new Date(successData.checkInDate).toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px]">1st Month Due</span>
+              <span className="text-indigo-600 font-black">Rs. {basePrice.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px]">Installment Schedule</span>
+              <span className="text-slate-900">{durationMonths} Month(s) Billed Monthly</span>
             </div>
           </div>
           <Button 
@@ -99,9 +104,9 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
               onClose();
               navigate('/payments');
             }}
-            className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-emerald-600 text-white font-black transition-colors shadow-xl"
+            className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-colors shadow-xl"
           >
-            Review Payment Ledger <ChevronRight className="w-5 h-5 ml-2" />
+            Open Payment Ledger <ChevronRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
       );
@@ -110,29 +115,46 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
     if (step === 2) {
       return (
         <div className="space-y-6">
-          <div className="bg-indigo-50/50 rounded-[2rem] p-6 border border-indigo-100/50">
-            <h4 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-4">Contract Protocol</h4>
-            <div className="space-y-4">
+          <div className="bg-indigo-50/50 rounded-[2rem] p-6 border border-indigo-100/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black text-indigo-500 uppercase tracking-widest">Tenancy Terms & Billing</h4>
+              <Badge className="bg-indigo-100 text-indigo-700 border-none font-bold text-[10px]">
+                Month-by-Month
+              </Badge>
+            </div>
+            <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center text-sm font-bold">
-                <span className="text-slate-500">Duration</span>
+                <span className="text-slate-500">Lease Term</span>
                 <span className="text-slate-900">{durationMonths} Month(s)</span>
               </div>
               <div className="flex justify-between items-center text-sm font-bold">
-                <span className="text-slate-500">Base Rent</span>
+                <span className="text-slate-500">Monthly Rent</span>
                 <span className="text-slate-900">Rs. {basePrice.toLocaleString()} / mo</span>
               </div>
               <div className="flex justify-between items-center text-sm font-bold">
                 <span className="text-slate-500">Check-In Date</span>
                 <span className="text-slate-900">{new Date(checkInDate).toLocaleDateString()}</span>
               </div>
-              <hr className="border-indigo-100 border-dashed my-4" />
+              <div className="flex justify-between items-center text-sm font-bold">
+                <span className="text-slate-500">Total Contract Value</span>
+                <span className="text-slate-400 line-through">Rs. {totalLeaseValue.toLocaleString()}</span>
+              </div>
+              <hr className="border-indigo-100 border-dashed my-3" />
               <div className="flex justify-between items-end">
-                <span className="text-slate-500 font-bold">Initial Deposit</span>
-                <span className="text-3xl font-black text-indigo-700 tracking-tighter">
-                  Rs. {totalAmount.toLocaleString()}
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 block">Due Now to Reserve</span>
+                  <span className="text-xs font-bold text-slate-400">1st Month Rent</span>
+                </div>
+                <span className="text-3xl font-black text-indigo-700 tracking-tight">
+                  Rs. {initialDueAmount.toLocaleString()}
                 </span>
               </div>
             </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-500 space-y-1">
+            <p className="font-bold text-slate-700">💡 Month-by-Month Payment Strategy</p>
+            <p>You only pay the 1st month rent to secure this booking. Remaining installments ({durationMonths > 1 ? `${durationMonths - 1} months` : '0'}) will be billed month-by-month on your payments ledger.</p>
           </div>
 
           {error && (
@@ -149,14 +171,14 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
                onClick={() => setStep(1)}
                disabled={loading}
             >
-              Modify Terms
+              Modify Dates
             </Button>
             <Button 
                className="flex-1 h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-xl disabled:opacity-50"
                onClick={submitBooking}
                disabled={loading}
             >
-              {loading ? 'Processing...' : 'Acknowledge & Book'} 
+              {loading ? 'Confirming...' : 'Confirm & Reserve'} 
               {!loading && <CreditCard className="w-4 h-4 ml-2" />}
             </Button>
           </div>
@@ -166,7 +188,7 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
 
     // Step 1
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Arrival Date</label>
@@ -197,6 +219,18 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
           </div>
         </div>
 
+        {/* Live Estimate Card */}
+        <div className="p-5 rounded-2xl bg-indigo-50/40 border border-indigo-100 flex items-center justify-between">
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider block">Monthly Rate</span>
+            <span className="text-xl font-black text-slate-900">Rs. {basePrice.toLocaleString()} <span className="text-xs font-bold text-slate-400">/ mo</span></span>
+          </div>
+          <div className="text-right space-y-0.5">
+            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block">1st Month Due</span>
+            <span className="text-xl font-black text-emerald-600">Rs. {basePrice.toLocaleString()}</span>
+          </div>
+        </div>
+
         {error && (
           <div className="text-rose-500 text-sm font-bold flex items-center gap-2">
             <AlertCircle className="w-4 h-4" /> {error}
@@ -207,7 +241,7 @@ export default function BookingModal({ isOpen, onClose, boarding, room }) {
            className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-xl"
            onClick={handleNext}
         >
-          Proceed to Valuation <ChevronRight className="w-5 h-5 ml-2" />
+          Review Booking Terms <ChevronRight className="w-5 h-5 ml-2" />
         </Button>
       </div>
     );

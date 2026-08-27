@@ -27,6 +27,7 @@ import UserSidebar from "@/components/common/UserSidebar";
 import { getCurrentUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import PayModal from "@/components/payment/PayModal";
+import DynamicSearchInput from "@/components/common/DynamicSearchInput";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -48,6 +49,8 @@ export default function Payments() {
   const [error, setError] = React.useState(null);
   const [payModalOpen, setPayModalOpen] = React.useState(false);
   const [selectedPayment, setSelectedPayment] = React.useState(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("all");
 
   React.useEffect(() => {
     fetchPayments();
@@ -78,6 +81,23 @@ export default function Payments() {
       alert("Failed to update status");
     }
   };
+
+  const filteredPayments = paymentsList.filter(item => {
+    const matchesSearch = 
+      (item.boarding?.boardingName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.transactionId || item._id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.billingMonth || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.type || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.booking?.room?.roomNumber ? `room ${item.booking.room.roomNumber}` : "").toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (statusFilter === "pending") return matchesSearch && item.status === "pending";
+    if (statusFilter === "completed") return matchesSearch && item.status === "completed";
+    if (statusFilter === "overdue") {
+      const isOverdue = item.status === 'pending' && item.dueDate && new Date(item.dueDate) < new Date();
+      return matchesSearch && isOverdue;
+    }
+    return matchesSearch;
+  });
 
   const role = getCurrentUser()?.role || 'tenant';
   const Navbar = role === 'tenant' ? UserNavbar : AdminNavbar;
@@ -112,6 +132,53 @@ export default function Payments() {
                   : 'Monitor your collection velocity, manage multi-property invoices, and export fiscal reporting.'}
               </p>
             </div>
+
+            {/* In-Page Dynamic Search Input */}
+            <div className="w-full sm:w-80">
+              <DynamicSearchInput
+                placeholder="Search invoices or properties..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                results={filteredPayments}
+                inputClassName="h-12 border-slate-200 shadow-sm rounded-2xl font-semibold text-xs sm:text-sm focus-visible:ring-emerald-500/20"
+                emptyMessage="No invoices match your search."
+                renderItem={(item) => (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-slate-900 text-xs truncate">
+                          {item.boarding?.boardingName || "Property Stay"}
+                        </span>
+                        {item.billingMonth && (
+                          <Badge className="text-[8px] px-1.5 py-0 bg-indigo-50 text-indigo-700 border-none font-bold uppercase">
+                            {item.billingMonth}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        REF: {item.transactionId || item._id.substring(0, 8)}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0 space-y-0.5">
+                      <span className="text-xs font-black text-slate-900 block">
+                        Rs. {item.amount?.toLocaleString()}
+                      </span>
+                      <Badge className={`text-[8px] px-1.5 py-0 border-none font-black uppercase ${
+                        item.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                      }`}>
+                        {item.status}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+                onSelect={(item) => {
+                  if (role === 'tenant' && item.status === 'pending') {
+                    setSelectedPayment(item);
+                    setPayModalOpen(true);
+                  }
+                }}
+              />
+            </div>
           </motion.div>
 
           {/* Revenue Cards */}
@@ -143,6 +210,33 @@ export default function Payments() {
             ))}
           </motion.section>
 
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {[
+                { id: 'all', label: 'All Invoices' },
+                { id: 'pending', label: 'Pending Dues' },
+                { id: 'completed', label: 'Settled / Paid' },
+                { id: 'overdue', label: 'Overdue' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`px-3.5 sm:px-4 py-2 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all ${
+                    statusFilter === tab.id
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-[11px] sm:text-xs font-bold text-slate-400 px-3">
+              {filteredPayments.length} Record{filteredPayments.length !== 1 ? 's' : ''} Found
+            </span>
+          </div>
+
           {/* Transaction Ledger */}
           <Card className="rounded-3xl sm:rounded-[3rem] border-0 shadow-2xl shadow-slate-200/50 bg-white overflow-hidden">
             <CardHeader className="p-6 sm:p-10 pb-4 sm:pb-6 flex flex-row items-center justify-between">
@@ -160,76 +254,123 @@ export default function Payments() {
               >
                 {loading && <p className="text-center p-8 sm:p-12 text-slate-400 font-bold">Sequencing ledger data...</p>}
                 {error && <p className="text-center p-8 sm:p-12 text-rose-500 font-bold">{error}</p>}
-                {!loading && !error && paymentsList.length === 0 && <p className="text-center p-8 sm:p-12 text-slate-400 font-bold">No transactions recorded.</p>}
+                {!loading && !error && filteredPayments.length === 0 && (
+                  <div className="text-center p-8 sm:p-12 space-y-2">
+                    <p className="text-slate-500 font-bold text-sm">No transactions match your search or filter.</p>
+                    {searchTerm && (
+                      <Button variant="ghost" onClick={() => { setSearchTerm(""); setStatusFilter("all"); }} className="text-emerald-600 font-bold text-xs">
+                        Clear Search & Filters
+                      </Button>
+                    )}
+                  </div>
+                )}
+                {filteredPayments.map((item) => {
+                  const isOverdue = item.status === 'pending' && item.dueDate && new Date(item.dueDate) < new Date();
+                  const dueDateFormatted = item.dueDate ? format(new Date(item.dueDate), "MMM dd, yyyy") : null;
+                  const paidDateFormatted = item.paidAt ? format(new Date(item.paidAt), "MMM dd, yyyy") : null;
 
-                {paymentsList.map((item) => (
-                  <motion.div 
-                    key={item._id} 
-                    variants={itemVariants}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    <div className="rounded-2xl sm:rounded-3xl border border-slate-50 p-4 sm:p-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 bg-slate-50/30 group hover:bg-white hover:shadow-xl transition-all duration-500 cursor-pointer">
-                      <div className="flex items-center gap-4 sm:gap-6">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-slate-400 group-hover:text-emerald-600 transition-colors shrink-0">
-                          <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="font-black text-slate-900 text-base sm:text-lg leading-tight uppercase tracking-tight truncate">
-                            {item.boarding?.boardingName || "Property Payment"}
-                          </h4>
-                          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 truncate">
-                            REF: {item.transactionId || item._id.substring(0, 8)} • {format(new Date(item.createdAt), "MMM dd, yyyy")}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center justify-between xl:justify-end gap-4 sm:gap-8 border-t xl:border-t-0 pt-4 xl:pt-0 w-full xl:w-auto">
-                        <div className="space-y-1">
-                          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</p>
-                          <p className="font-bold text-slate-700 text-xs sm:text-sm capitalize">{item.method || 'Digital'}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</p>
-                          <p className="font-black text-slate-900 text-base sm:text-lg">Rs. {item.amount?.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <Badge className={`font-black tracking-widest text-[9px] sm:text-[10px] rounded-lg px-2.5 py-1 border-none uppercase ${item.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : item.status === 'failed' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}`}>
-                            {item.status}
-                          </Badge>
-                        </div>
-                        {role !== 'tenant' && item.status === 'pending' ? (
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(item._id, 'completed'); }} 
-                              className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white font-bold text-xs transition-colors"
-                            >
-                              Approve
-                            </Button>
-                            <Button 
-                              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(item._id, 'failed'); }} 
-                              variant="ghost" 
-                              className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl text-slate-400 font-bold text-xs hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                            >
-                              Reject
-                            </Button>
+                  return (
+                    <motion.div 
+                      key={item._id} 
+                      variants={itemVariants}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      <div className="rounded-2xl sm:rounded-3xl border border-slate-100 p-4 sm:p-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 bg-slate-50/40 group hover:bg-white hover:shadow-xl transition-all duration-500 cursor-pointer">
+                        <div className="flex items-center gap-4 sm:gap-6">
+                          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-sm flex items-center justify-center shrink-0 transition-colors ${
+                            item.status === 'completed'
+                              ? 'bg-emerald-50 text-emerald-600'
+                              : isOverdue
+                              ? 'bg-rose-50 text-rose-600'
+                              : 'bg-indigo-50 text-indigo-600'
+                          }`}>
+                            <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />
                           </div>
-                        ) : role === 'tenant' && item.status === 'pending' ? (
-                          <Button 
-                            onClick={(e) => { e.stopPropagation(); setSelectedPayment(item); setPayModalOpen(true); }}
-                            className="h-9 sm:h-10 px-5 sm:px-6 rounded-xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-500 shadow-md transition-all duration-300 active:scale-95"
-                          >
-                            Pay Now
-                          </Button>
-                        ) : (
-                          <Button size="icon" className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white text-slate-400 group-hover:text-slate-900 shadow-sm">
-                            <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </Button>
-                        )}
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-black text-slate-900 text-base sm:text-lg leading-tight uppercase tracking-tight truncate">
+                                {item.boarding?.boardingName || "Property Stay"}
+                              </h4>
+                              {item.billingMonth && (
+                                <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 font-black text-[9px] uppercase tracking-wider px-2 py-0.5">
+                                  {item.billingMonth}
+                                </Badge>
+                              )}
+                              {item.type === 'first_month' && (
+                                <Badge className="bg-purple-50 text-purple-700 border-purple-100 font-black text-[9px] uppercase tracking-wider px-2 py-0.5">
+                                  1st Month Move-In
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                              REF: {item.transactionId || item._id.substring(0, 8)} • {item.boarding?.city || "Stay"} {item.booking?.room?.roomNumber ? `• RM ${item.booking.room.roomNumber}` : ''}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between xl:justify-end gap-4 sm:gap-8 border-t xl:border-t-0 pt-4 xl:pt-0 w-full xl:w-auto">
+                          <div className="space-y-1">
+                            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                              {item.status === 'completed' ? 'Settled On' : 'Due Date'}
+                            </p>
+                            <p className={`font-bold text-xs sm:text-sm ${isOverdue ? 'text-rose-600 font-black' : 'text-slate-700'}`}>
+                              {item.status === 'completed' && paidDateFormatted ? paidDateFormatted : dueDateFormatted || format(new Date(item.createdAt), "MMM dd, yyyy")}
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</p>
+                            <p className="font-black text-slate-900 text-base sm:text-lg">Rs. {item.amount?.toLocaleString()}</p>
+                          </div>
+
+                          <div>
+                            {isOverdue ? (
+                              <Badge className="font-black tracking-widest text-[9px] sm:text-[10px] rounded-lg px-2.5 py-1 border-none uppercase bg-rose-50 text-rose-600">
+                                Overdue
+                              </Badge>
+                            ) : (
+                              <Badge className={`font-black tracking-widest text-[9px] sm:text-[10px] rounded-lg px-2.5 py-1 border-none uppercase ${
+                                item.status === 'completed' 
+                                  ? 'bg-emerald-50 text-emerald-600' 
+                                  : item.status === 'failed' 
+                                  ? 'bg-rose-50 text-rose-600' 
+                                  : 'bg-amber-50 text-amber-600'
+                              }`}>
+                                {item.status === 'completed' ? 'Paid' : item.status}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {role !== 'tenant' && item.status === 'pending' ? (
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                onClick={(e) => { e.stopPropagation(); handleStatusUpdate(item._id, 'completed'); }} 
+                                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white font-bold text-xs transition-colors"
+                              >
+                                Mark Paid
+                              </Button>
+                              <Button 
+                                onClick={(e) => { e.stopPropagation(); handleStatusUpdate(item._id, 'failed'); }} 
+                                variant="ghost" 
+                                className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl text-slate-400 font-bold text-xs hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          ) : role === 'tenant' && item.status === 'pending' ? (
+                            <Button 
+                              onClick={(e) => { e.stopPropagation(); setSelectedPayment(item); setPayModalOpen(true); }}
+                              className="h-9 sm:h-10 px-5 sm:px-6 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all duration-300 active:scale-95"
+                            >
+                              Pay Rent
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </motion.div>
              </CardContent>
            </Card>

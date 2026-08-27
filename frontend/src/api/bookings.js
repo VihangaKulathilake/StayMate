@@ -47,3 +47,27 @@ export const deleteBooking = async (bookingId) => {
     throw toApiError(error, "Failed to delete booking.");
   }
 };
+
+export const requestStayExtension = async (bookingId, { additionalMonths, reason }) => {
+  try {
+    const { data } = await axiosInstance.post(`${BOOKINGS_BASE}/${bookingId}/request-extension`, {
+      additionalMonths,
+      reason,
+    });
+    return data;
+  } catch (error) {
+    throw toApiError(error, "Failed to request stay extension.");
+  }
+};
+
+export const respondStayExtension = async (bookingId, { decision, landlordNote }) => {
+  try {
+    const { data } = await axiosInstance.put(`${BOOKINGS_BASE}/${bookingId}/respond-extension`, {
+      decision,
+      landlordNote,
+    });
+    return data;
+  } catch (error) {
+    throw toApiError(error, "Failed to submit extension decision.");
+  }
+};

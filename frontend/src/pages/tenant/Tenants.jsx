@@ -21,10 +21,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getBoardings } from "@/api/boardings";
-import { getBookings } from "@/api/bookings";
-
-
+import { getBookings, respondStayExtension } from "@/api/bookings";
+import { format } from "date-fns";
+import DynamicSearchInput from "@/components/common/DynamicSearchInput";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -43,10 +52,18 @@ const staggerContainer = {
 
 export default function Tenants() {
   const [opsData, setOpsData] = React.useState([]);
-  const [summary, setSummary] = React.useState({ pending: 0, maintenance: 0, issues: 0 });
+  const [rawBookings, setRawBookings] = React.useState([]);
+  const [summary, setSummary] = React.useState({ pending: 0, maintenance: 0, issues: 0, extensions: 0 });
   const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [filterTab, setFilterTab] = React.useState("all");
+
+  // Extension Action State
+  const [selectedExtensionBooking, setSelectedExtensionBooking] = React.useState(null);
+  const [extensionDecision, setExtensionDecision] = React.useState("approved");
+  const [landlordNote, setLandlordNote] = React.useState("");
+  const [extensionActionLoading, setExtensionActionLoading] = React.useState(false);
+  const [extensionActionError, setExtensionActionError] = React.useState("");
 
   React.useEffect(() => {
     fetchOpsData();
@@ -59,6 +76,8 @@ export default function Tenants() {
         getBoardings(),
         getBookings()
       ]);
+
+      setRawBookings(bookings);
 
       const data = boardings.map(b => {
         const bBookings = bookings.filter(book => book.boarding?._id === b._id || book.boarding === b._id);
@@ -83,11 +102,13 @@ export default function Tenants() {
       const totalPending = bookings.filter(b => b.status === 'pending').length;
       const totalActive = bookings.filter(b => b.status === 'approved').length;
       const totalIssues = bookings.filter(b => b.status === 'cancelled' || b.status === 'rejected').length;
+      const totalExtensions = bookings.filter(b => b.extensionRequest?.status === 'pending').length;
 
       setSummary({
         pending: totalPending,
         maintenance: totalActive,
-        issues: totalIssues
+        issues: totalIssues,
+        extensions: totalExtensions
       });
 
     } catch (error) {
@@ -96,6 +117,26 @@ export default function Tenants() {
       setLoading(false);
     }
   };
+
+  const handleRespondExtension = async () => {
+    if (!selectedExtensionBooking) return;
+    try {
+      setExtensionActionLoading(true);
+      setExtensionActionError("");
+      await respondStayExtension(selectedExtensionBooking._id, {
+        decision: extensionDecision,
+        landlordNote,
+      });
+      setSelectedExtensionBooking(null);
+      fetchOpsData();
+    } catch (err) {
+      setExtensionActionError(err.message || "Failed to process extension decision.");
+    } finally {
+      setExtensionActionLoading(false);
+    }
+  };
+
+  const pendingExtensions = rawBookings.filter(b => b.extensionRequest?.status === 'pending');
 
   const filteredOpsData = opsData.filter(property => {
     const matchesSearch = property.property?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,13 +170,26 @@ export default function Tenants() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input 
-                  placeholder="Search properties..." 
-                  className="pl-9 h-12 rounded-xl bg-white border-slate-200 shadow-sm font-semibold text-sm w-full"
+              <div className="w-full sm:w-72">
+                <DynamicSearchInput 
+                  placeholder="Search properties or hubs..." 
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={setSearchTerm}
+                  results={filteredOpsData}
+                  inputClassName="h-12 rounded-xl border-slate-200 shadow-sm font-semibold text-xs sm:text-sm"
+                  emptyMessage="No property hubs match your search."
+                  renderItem={(item) => (
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <span className="font-black text-slate-900 text-xs block">{item.property}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{item.location}</span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs font-black text-indigo-600 block">{item.occupied}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold">Occupancy</span>
+                      </div>
+                    </div>
+                  )}
                 />
               </div>
               <Link to="/tenants/add" className="no-underline w-full sm:w-auto">
@@ -152,37 +206,104 @@ export default function Tenants() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
           >
             {[
               { label: "Pending Requests", count: summary.pending, sub: "Entrance screening", icon: Mail, bg: "bg-indigo-50", text: "text-indigo-600", key: "pending" },
+              { label: "Extension Requests", count: summary.extensions, sub: "Lease renewal", icon: Clock3, bg: "bg-purple-50", text: "text-purple-600", key: "extensions" },
               { label: "Active Residents", count: summary.maintenance, sub: "Verified occupancy", icon: ShieldCheck, bg: "bg-emerald-50", text: "text-emerald-600", key: "active" },
-              { label: "Rejected / Cancelled", count: summary.issues, sub: "Closed applications", icon: AlertTriangle, bg: "bg-rose-50", text: "text-rose-600", key: "all" },
+              { label: "Closed / Inactive", count: summary.issues, sub: "Past records", icon: AlertTriangle, bg: "bg-slate-50", text: "text-slate-600", key: "all" },
             ].map((action, i) => (
               <motion.div key={i} variants={fadeIn}>
                 <Card 
                   onClick={() => setFilterTab(action.key)}
-                  className={`rounded-2xl sm:rounded-[2.5rem] border-2 ${filterTab === action.key ? 'border-indigo-600 ring-4 ring-indigo-500/10' : 'border-transparent'} shadow-lg shadow-slate-200/40 bg-white p-5 sm:p-6 group hover:shadow-2xl transition-all duration-300 cursor-pointer`}
+                  className={`rounded-2xl sm:rounded-[2rem] border-2 ${filterTab === action.key ? 'border-indigo-600 ring-4 ring-indigo-500/10' : 'border-transparent'} shadow-lg shadow-slate-200/40 bg-white p-5 group hover:shadow-2xl transition-all duration-300 cursor-pointer`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3.5 sm:gap-4">
-                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${action.bg} ${action.text} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-                        <action.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-2xl ${action.bg} ${action.text} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
+                        <action.icon className="w-5 h-5" />
                       </div>
                       <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{action.label}</p>
-                        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{action.count}</h3>
-                        <p className="text-[11px] sm:text-xs font-bold text-slate-500">{action.sub}</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">{action.count}</h3>
+                        <p className="text-[11px] font-bold text-slate-500">{action.sub}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9 sm:h-10 sm:w-10 text-slate-300 group-hover:text-indigo-600 transition-colors shrink-0">
-                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </Button>
                   </div>
                 </Card>
               </motion.div>
             ))}
           </motion.section>
+
+          {/* Pending Extension Review Section */}
+          {pendingExtensions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 sm:p-8 rounded-3xl sm:rounded-[2.5rem] bg-gradient-to-r from-purple-900 to-indigo-900 text-white shadow-2xl space-y-6"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <Badge className="bg-purple-500/30 text-purple-200 border-none font-bold uppercase tracking-wider text-[10px]">
+                    Action Required
+                  </Badge>
+                  <h3 className="text-2xl font-black tracking-tight">Pending Stay Extensions ({pendingExtensions.length})</h3>
+                  <p className="text-purple-200 text-xs font-medium">Residents requesting to extend their active stays. Approved extensions automatically append month-by-month installments to the ledger.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingExtensions.map((booking) => (
+                  <div key={booking._id} className="p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="font-black text-white text-base">{booking.tenant?.name || "Resident"}</h4>
+                        <p className="text-xs text-purple-200 font-medium">{booking.boarding?.boardingName} {booking.room ? `• Room ${booking.room.roomNumber}` : ''}</p>
+                      </div>
+                      <Badge className="bg-emerald-400 text-slate-900 font-black text-xs px-2.5 py-0.5">
+                        +{booking.extensionRequest?.additionalMonths} Month(s)
+                      </Badge>
+                    </div>
+
+                    <div className="text-xs text-purple-100/90 font-medium space-y-1 pt-1 border-t border-white/10">
+                      <p><span className="text-purple-300 font-bold">New Lease Term:</span> {booking.durationMonths + booking.extensionRequest?.additionalMonths} Months</p>
+                      <p><span className="text-purple-300 font-bold">Monthly Rent:</span> Rs. {(booking.monthlyRent || (booking.payment?.amount / booking.durationMonths) || 0).toLocaleString()} / mo</p>
+                      {booking.extensionRequest?.reason && (
+                        <p className="italic text-purple-200 text-[11px] pt-1">"{booking.extensionRequest.reason}"</p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setSelectedExtensionBooking(booking);
+                          setExtensionDecision("approved");
+                          setLandlordNote("");
+                          setExtensionActionError("");
+                        }}
+                        className="rounded-xl h-10 px-4 font-black bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs shadow-md flex-1"
+                      >
+                        Approve Extension
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedExtensionBooking(booking);
+                          setExtensionDecision("rejected");
+                          setLandlordNote("");
+                          setExtensionActionError("");
+                        }}
+                        variant="outline"
+                        className="rounded-xl h-10 px-4 font-bold bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs"
+                      >
+                        Decline
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Interactive Filter Tabs */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-2 sm:p-3 rounded-2xl border border-slate-100 shadow-sm">
@@ -289,11 +410,87 @@ export default function Tenants() {
                         Detailed tenant identities and platform-wide screening records are managed securely in real time.
                      </p>
                   </div>
-               </Card>
+                </Card>
             </motion.div>
           </div>
         </main>
       </div>
+
+      {/* Landlord Extension Decision Dialog */}
+      <Dialog open={Boolean(selectedExtensionBooking)} onOpenChange={(open) => { if (!open) setSelectedExtensionBooking(null); }}>
+        <DialogContent className="sm:max-w-[480px] rounded-3xl p-6 bg-white border-0 shadow-2xl">
+          <DialogHeader className="space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto sm:mx-0">
+              <Clock3 className="w-6 h-6" />
+            </div>
+            <DialogTitle className="text-2xl font-black text-slate-900">
+              {extensionDecision === "approved" ? "Approve Stay Extension" : "Decline Stay Extension"}
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 font-medium text-xs leading-relaxed">
+              Reviewing extension for <span className="font-bold text-slate-900">{selectedExtensionBooking?.tenant?.name}</span> at <span className="font-bold text-slate-900">{selectedExtensionBooking?.boarding?.boardingName}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 space-y-2 text-xs font-bold text-slate-700">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Extension Requested:</span>
+              <span className="text-purple-700 font-black">+{selectedExtensionBooking?.extensionRequest?.additionalMonths} Month(s)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">New Total Lease:</span>
+              <span className="text-slate-900">{(selectedExtensionBooking?.durationMonths || 0) + (selectedExtensionBooking?.extensionRequest?.additionalMonths || 0)} Months</span>
+            </div>
+            {selectedExtensionBooking?.extensionRequest?.reason && (
+              <div className="pt-2 border-t border-purple-100">
+                <span className="text-slate-400 text-[10px] uppercase tracking-wider block">Resident's Note</span>
+                <p className="text-slate-700 font-medium italic text-[11px]">"{selectedExtensionBooking.extensionRequest.reason}"</p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Note to Resident (Optional)
+            </label>
+            <Textarea
+              placeholder={extensionDecision === "approved" ? "E.g., Glad to extend your stay! Your ledger has been updated." : "E.g., Unfortunately, this room has been reserved for the upcoming term."}
+              value={landlordNote}
+              onChange={(e) => setLandlordNote(e.target.value)}
+              className="min-h-[80px] rounded-xl resize-none text-xs"
+            />
+          </div>
+
+          {extensionActionError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
+              {extensionActionError}
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedExtensionBooking(null)}
+              className="rounded-xl h-11 font-bold flex-1"
+              disabled={extensionActionLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleRespondExtension}
+              className={`rounded-xl h-11 font-black text-white shadow-lg flex-1 ${
+                extensionDecision === "approved"
+                  ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
+                  : "bg-rose-600 hover:bg-rose-700 shadow-rose-200"
+              }`}
+              disabled={extensionActionLoading}
+            >
+              {extensionActionLoading ? "Processing..." : extensionDecision === "approved" ? "Confirm Approval" : "Confirm Decline"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

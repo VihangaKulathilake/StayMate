@@ -61,11 +61,15 @@ export const createPayment = async (req, res) => {
 // Get payments with filters
 export const getPayments = async (req, res) => {
     try {
-        const { status, userId, boardingId } = req.query;
+        const { status, userId, boardingId, bookingId } = req.query;
         const filter = {};
 
         if (status) {
             filter.status = status;
+        }
+
+        if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) {
+            filter.booking = bookingId;
         }
 
         if (isAdmin(req.user)) {
@@ -89,8 +93,13 @@ export const getPayments = async (req, res) => {
 
         const payments = await Payment.find(filter)
             .populate("user", "name email")
-            .populate("boarding", "boardingName address")
-            .sort({ createdAt: -1 });
+            .populate("boarding", "boardingName address city")
+            .populate({
+                path: "booking",
+                select: "checkInDate durationMonths monthlyRent status room",
+                populate: { path: "room", select: "roomNumber price" }
+            })
+            .sort({ dueDate: 1, createdAt: -1 });
 
         return res.json(payments);
     } catch (error) {
@@ -109,7 +118,12 @@ export const getPaymentById = async (req, res) => {
 
         const payment = await Payment.findById(id)
             .populate("user", "name email")
-            .populate("boarding", "boardingName address");
+            .populate("boarding", "boardingName address city")
+            .populate({
+                path: "booking",
+                select: "checkInDate durationMonths monthlyRent status room",
+                populate: { path: "room", select: "roomNumber price" }
+            });
 
         if (!payment) {
             return res.status(404).json({ message: "Payment not found" });
@@ -154,12 +168,15 @@ export const updatePaymentStatus = async (req, res) => {
         }
 
         payment.status = status;
+        if (status === "completed") {
+            payment.paidAt = new Date();
+        }
         await payment.save();
 
         // Automatically synchronize the associated Request/Booking
-        const booking = await Booking.findOne({ payment: id });
+        const booking = await Booking.findOne({ $or: [{ payment: id }, { _id: payment.booking }] });
         if (booking) {
-            if (status === 'completed') {
+            if (status === 'completed' && booking.status === 'pending') {
                 booking.status = 'approved';
                 // Lock the room capacity
                 if (booking.room) {
@@ -169,7 +186,7 @@ export const updatePaymentStatus = async (req, res) => {
                         await room.save();
                     }
                 }
-            } else if (status === 'failed') {
+            } else if (status === 'failed' && payment.type === 'first_month') {
                 booking.status = 'rejected';
                 // Release the room capacity
                 if (booking.room) {
@@ -347,6 +364,7 @@ export const capturePayPalOrder = async (req, res) => {
             payment.status = "completed";
             payment.method = "paypal";
             payment.transactionId = capture.id;
+            payment.paidAt = new Date();
             payment.metadata = {
                 ...payment.metadata,
                 paypalCapture: capture,
@@ -354,9 +372,11 @@ export const capturePayPalOrder = async (req, res) => {
             await payment.save();
 
             // Automatically synchronize the associated Booking
-            const booking = await Booking.findOne({ payment: payment._id });
+            const booking = await Booking.findOne({ $or: [{ payment: payment._id }, { _id: payment.booking }] });
             if (booking) {
-                booking.status = "approved";
+                if (booking.status === "pending") {
+                    booking.status = "approved";
+                }
                 // Lock the room capacity
                 if (booking.room) {
                     const room = await Room.findById(booking.room);
