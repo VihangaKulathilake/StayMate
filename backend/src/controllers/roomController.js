@@ -97,7 +97,9 @@ export const getRoomsByBoarding = async (req, res) => {
       return res.status(404).json({ message: "Boarding not found" });
     }
 
-    const rooms = await Room.find({ boarding: boardingId, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
+    const rooms = await Room.find({ boarding: boardingId, isDeleted: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json(rooms);
   } catch (error) {

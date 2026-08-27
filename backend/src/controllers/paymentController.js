@@ -80,7 +80,7 @@ export const getPayments = async (req, res) => {
                 filter.boarding = boardingId;
             }
         } else if (req.user.role === "landlord") {
-            const ownedBoardings = await Boarding.find({ owner: req.user.id }).select("_id");
+            const ownedBoardings = await Boarding.find({ owner: req.user.id }).select("_id").lean();
             const ownedIds = ownedBoardings.map(b => b._id);
             filter.boarding = { $in: ownedIds };
             if (userId && mongoose.Types.ObjectId.isValid(userId)) {
@@ -99,7 +99,8 @@ export const getPayments = async (req, res) => {
                 select: "checkInDate durationMonths monthlyRent status room",
                 populate: { path: "room", select: "roomNumber price" }
             })
-            .sort({ dueDate: 1, createdAt: -1 });
+            .sort({ dueDate: 1, createdAt: -1 })
+            .lean();
 
         return res.json(payments);
     } catch (error) {
@@ -123,7 +124,8 @@ export const getPaymentById = async (req, res) => {
                 path: "booking",
                 select: "checkInDate durationMonths monthlyRent status room",
                 populate: { path: "room", select: "roomNumber price" }
-            });
+            })
+            .lean();
 
         if (!payment) {
             return res.status(404).json({ message: "Payment not found" });

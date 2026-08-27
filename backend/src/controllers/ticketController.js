@@ -71,7 +71,8 @@ export const getUserTickets = async (req, res, next) => {
       .populate("receiver", "name email role")
       .populate("boarding", "boardingName")
       .populate("replies.sender", "name email role")
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
+      .lean();
 
     res.status(200).json(tickets);
   } catch (error) {

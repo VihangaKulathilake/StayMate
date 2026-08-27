@@ -175,7 +175,7 @@ export const getBookings = async (req, res) => {
         filter.tenant = tenantId;
       }
     } else if (req.user.role === "landlord") {
-      const ownedBoardings = await Boarding.find({ owner: req.user.id }).select("_id");
+      const ownedBoardings = await Boarding.find({ owner: req.user.id }).select("_id").lean();
       const ownedIds = ownedBoardings.map((b) => b._id);
       filter.boarding = { $in: ownedIds };
     } else {
@@ -183,12 +183,13 @@ export const getBookings = async (req, res) => {
     }
 
     const bookings = await Booking.find(filter)
-      .populate("tenant", "name email role")
-      .populate("boarding")
-      .populate("room")
-      .populate("payment")
-      .populate("payments")
-      .sort({ createdAt: -1 });
+      .populate("tenant", "name email role phone")
+      .populate("boarding", "boardingName address city type price images owner")
+      .populate("room", "roomNumber price capacity facilities")
+      .populate("payment", "amount status type billingMonth paidAt")
+      .populate("payments", "amount status type billingMonth installmentNumber totalInstallments dueDate paidAt")
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json(bookings);
   } catch (error) {
@@ -206,11 +207,12 @@ export const getBookingById = async (req, res) => {
     }
 
     const booking = await Booking.findById(id)
-      .populate("tenant", "name email role")
-      .populate("boarding")
-      .populate("room")
-      .populate("payment")
-      .populate("payments");
+      .populate("tenant", "name email role phone")
+      .populate("boarding", "boardingName address city type price images owner")
+      .populate("room", "roomNumber price capacity facilities")
+      .populate("payment", "amount status type billingMonth paidAt")
+      .populate("payments", "amount status type billingMonth installmentNumber totalInstallments dueDate paidAt")
+      .lean();
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });

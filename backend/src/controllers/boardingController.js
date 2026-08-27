@@ -9,6 +9,7 @@ import { isAdmin, isOwnerOrAdmin } from "../utils/authHelpers.js";
 import { normalizeStringArray } from "../utils/formatHelpers.js";
 import { calculateScore } from "../utils/boardingUtils.js";
 import { getRecommendations } from "../services/mlService/mlService.js";
+import { apiCache } from "../utils/cache.js";
 
 // Create a new boarding
 export const createBoarding = async (req, res) => {
@@ -141,6 +142,8 @@ export const createBoarding = async (req, res) => {
     }
 
     const populatedBoarding = await Boarding.findById(boarding._id).populate("owner", "name email role");
+    apiCache.del("boardings");
+    apiCache.del("stats");
 
     return res.status(201).json({
       message: "Boarding registered successfully",
@@ -157,6 +160,15 @@ export const getBoardings = async (req, res) => {
   try {
     // Extract query parameters for filtering
     const { q, city, minPrice, maxPrice, totalRooms, status, owner, mine, sortBy, includeArchived } = req.query;
+
+    // Cache check for non-personalized general browsing
+    const cacheKey = !mine && !q ? `boardings:${JSON.stringify(req.query)}` : null;
+    if (cacheKey) {
+      const cached = apiCache.get(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+    }
 
     // Fetch user preferences to check for specific places
     let preferredLocation = null;
@@ -400,9 +412,14 @@ export const getBoardings = async (req, res) => {
         } catch (sortErr) {
           console.error("Sorting recommendation error:", sortErr);
           // Fallback to all boardings if ML fails
+          if (cacheKey) apiCache.set(cacheKey, response, 15);
           return res.json(response);
         }
       }
+    }
+
+    if (cacheKey) {
+      apiCache.set(cacheKey, response, 15);
     }
 
     // if no filters or preferences applied return response as is
@@ -422,7 +439,9 @@ export const getBoardingById = async (req, res) => {
       return res.status(400).json({ message: "Invalid boarding id" });
     }
 
-    const boarding = await Boarding.findById(id).populate("owner", "name email role");
+    const boarding = await Boarding.findById(id)
+      .populate("owner", "name email role phone")
+      .lean();
 
     if (!boarding) {
       return res.status(404).json({ message: "Boarding not found" });
@@ -438,17 +457,17 @@ export const getBoardingById = async (req, res) => {
     }
 
     if (boarding.type === "room_based") {
-      const rooms = await Room.find({ boarding: id, isDeleted: { $ne: true } });
+      const rooms = await Room.find({ boarding: id, isDeleted: { $ne: true } }).lean();
       const totalRooms = rooms.length;
       const availableRooms = rooms.filter((room) => room.available).length;
       const minPrice = rooms.length > 0 ? Math.min(...rooms.map(r => r.price)) : 0;
 
       return res.json({
-        ...boarding.toObject(),
+        ...boarding,
         totalRooms,
         availableRooms,
         rooms,
-        price: minPrice, // Set price to minPrice for detail view
+        price: minPrice,
       });
     }
 
@@ -619,6 +638,8 @@ export const updateBoarding = async (req, res) => {
     }
 
     const updatedBoarding = await Boarding.findById(id).populate("owner", "name email role");
+    apiCache.del("boardings");
+    apiCache.del("stats");
 
     return res.json({
       message: "Boarding updated successfully",
@@ -685,6 +706,8 @@ export const deleteBoarding = async (req, res) => {
         session.endSession();
       }
 
+      apiCache.del("boardings");
+      apiCache.del("stats");
       return res.json({ message: "Boarding and associated records permanently purged" });
     }
 
@@ -700,6 +723,9 @@ export const deleteBoarding = async (req, res) => {
       { isDeleted: true, deletedAt: new Date(), available: false }
     );
 
+    apiCache.del("boardings");
+    apiCache.del("stats");
+
     return res.json({ message: "Boarding successfully unlisted and archived" });
   } catch (error) {
     console.error("DELETE_BOARDING_ERROR:", error);
@@ -714,7 +740,7 @@ export const getAdminStats = async (req, res) => {
       User.countDocuments({ role: "landlord" }),
       User.countDocuments({ role: "tenant" }),
       Boarding.countDocuments(),
-      Payment.find({ status: "completed" }).select("amount"),
+      Payment.find({ status: "completed" }).select("amount").lean(),
     ]);
 
     const totalRevenue = payments.reduce((acc, p) => acc + (p.amount || 0), 0);
@@ -735,7 +761,7 @@ export const getAdminStats = async (req, res) => {
 export const rateBoardings = async (req, res) => {
   try {
     const { preferences } = req.body;
-    const boardings = await Boarding.find();
+    const boardings = await Boarding.find().lean();
     const ratedBoardings = boardings.map((boarding) => ({
       ...boarding,
       score: calculateScore(boarding, preferences),
@@ -750,9 +776,13 @@ export const rateBoardings = async (req, res) => {
   }
 };
 
-// Get platform-wide stats for landing page (publicly accessible)
+// Get platform-wide stats for landing page (publicly accessible with 60s TTL cache)
 export const getPublicStats = async (req, res) => {
   try {
+    const cacheKey = "stats:public";
+    const cached = apiCache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     const [usersCount, boardingsCount, cities, bookingsCount] = await Promise.all([
       User.countDocuments({ role: { $in: ["tenant", "landlord"] } }),
       Boarding.countDocuments({ status: "approved" }),
@@ -760,12 +790,15 @@ export const getPublicStats = async (req, res) => {
       Booking.countDocuments({ status: "approved" }),
     ]);
 
-    return res.json({
+    const result = {
       users: usersCount,
       boardings: boardingsCount,
       cities: cities.length,
       bookings: bookingsCount,
-    });
+    };
+
+    apiCache.set(cacheKey, result, 60);
+    return res.json(result);
   } catch (error) {
     console.error("GET_PUBLIC_STATS_ERROR:", error);
     return res.status(500).json({ message: "Server error", error: error.message });

@@ -4,7 +4,7 @@ import User from "../models/User.js";
 // GET /api/users/me - Get the logged-in user's full profile from DB
 export const getCurrentUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password").lean();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -122,7 +122,7 @@ export const getUsers = async (req, res) => {
       filter.role = role;
     }
     
-    const users = await User.find(filter).select("-password").sort({ createdAt: -1 });
+    const users = await User.find(filter).select("-password").sort({ createdAt: -1 }).lean();
     return res.json(users);
   } catch (error) {
     console.error("GET_USERS_ERROR:", error);
@@ -133,7 +133,7 @@ export const getUsers = async (req, res) => {
 // GET /api/users/:id - Get specific user completely (Admin only)
 export const adminGetUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.params.id).select("-password").lean();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

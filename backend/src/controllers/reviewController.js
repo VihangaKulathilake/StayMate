@@ -36,7 +36,8 @@ export const getReviews = async (req, res) => {
     try {
         const reviews = await Review.find()
             .populate("user", "name email")
-            .populate("boarding", "boardingName address");
+            .populate("boarding", "boardingName address")
+            .lean();
         return res.json(reviews);
     } catch (error) {
         console.error("Error fetching reviews:", error);
@@ -55,7 +56,8 @@ export const getReviewById = async (req, res) => {
 
         const review = await Review.findById(id)
             .populate("user", "name email")
-            .populate("boarding", "boardingName address");
+            .populate("boarding", "boardingName address")
+            .lean();
 
         if (!review) {
             return res.status(404).json({ message: "Review not found" });
@@ -79,7 +81,9 @@ export const getReviewsByBoardingId = async (req, res) => {
 
         const reviews = await Review.find({ boarding: id })
             .populate("user", "name email")
-            .populate("boarding", "boardingName address");
+            .populate("boarding", "boardingName address")
+            .sort({ createdAt: -1 })
+            .lean();
 
         return res.json(reviews);
     } catch (error) {
