@@ -86,9 +86,10 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-bookingSchema.index({ boarding: 1 });
-bookingSchema.index({ tenant: 1 });
-bookingSchema.index({ status: 1 });
-bookingSchema.index({ "extensionRequest.status": 1 });
+// High-Performance Query Indexes
+bookingSchema.index({ tenant: 1, status: 1, createdAt: -1 });
+bookingSchema.index({ boarding: 1, status: 1, createdAt: -1 });
+bookingSchema.index({ "extensionRequest.status": 1, boarding: 1 });
+bookingSchema.index({ status: 1, createdAt: -1 });
 
 export default mongoose.model("Booking", bookingSchema);

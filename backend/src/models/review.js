@@ -24,6 +24,9 @@ const reviewSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-reviewSchema.index({ boarding: 1 });
+// High-Performance Query & Aggregation Indexes
+reviewSchema.index({ boarding: 1, rating: 1 });
+reviewSchema.index({ user: 1, boarding: 1 });
+reviewSchema.index({ boarding: 1, createdAt: -1 });
 
 export default mongoose.model("Review", reviewSchema);

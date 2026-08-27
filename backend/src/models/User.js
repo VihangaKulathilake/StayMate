@@ -42,10 +42,10 @@ const userSchema = mongoose.Schema(
     },
     preferences: {
       preferredLocations: [{
-        name: String,              // e.g., "San Francisco" or "123 Main Street"
-        lat: Number,               // latitude
-        lng: Number,               // longitude
-        locationType: String       // "city" or "place"
+        name: String,
+        lat: Number,
+        lng: Number,
+        locationType: String
       }],
       minPrice: Number,
       maxPrice: Number,
@@ -62,6 +62,9 @@ const userSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+// High-Performance Query Indexes
+userSchema.index({ role: 1, createdAt: -1 });
 
 const User = mongoose.model("User", userSchema);
 

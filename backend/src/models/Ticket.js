@@ -60,11 +60,11 @@ const ticketSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for faster querying
-ticketSchema.index({ sender: 1 });
-ticketSchema.index({ receiver: 1 });
-ticketSchema.index({ status: 1 });
-ticketSchema.index({ type: 1 });
+// High-Performance Query Indexes
+ticketSchema.index({ sender: 1, createdAt: -1 });
+ticketSchema.index({ receiver: 1, status: 1, createdAt: -1 });
+ticketSchema.index({ boarding: 1, createdAt: -1 });
+ticketSchema.index({ type: 1, status: 1, createdAt: -1 });
 
 const Ticket = mongoose.model("Ticket", ticketSchema);
 

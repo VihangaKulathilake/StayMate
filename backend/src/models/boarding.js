@@ -34,7 +34,6 @@ const boardingSchema = new mongoose.Schema(
         required: true,
         validate: {
           validator: function (v) {
-            // Ensure it's an array of exactly 2 numbers
             return Array.isArray(v) && v.length === 2;
           },
           message: "Invalid coordinates. Must be [longitude, latitude] within valid ranges."
@@ -72,7 +71,7 @@ const boardingSchema = new mongoose.Schema(
 
     images: [
       {
-        type: String, // store image URLs (from cloud storage like S3 / Cloudinary)
+        type: String,
       },
     ],
 
@@ -104,15 +103,22 @@ const boardingSchema = new mongoose.Schema(
   }
 );
 
-// Performance Indexes
-boardingSchema.index({ owner: 1 });
-boardingSchema.index({ city: 1 });
-boardingSchema.index({ status: 1 });
-boardingSchema.index({ isDeleted: 1 });
-boardingSchema.index({ isDeleted: 1, status: 1 });
-boardingSchema.index({ price: 1 });
-boardingSchema.index({ createdAt: -1 });
+// High-Performance Query & Aggregation Indexes
+boardingSchema.index({ status: 1, isDeleted: 1, createdAt: -1 });
+boardingSchema.index({ city: 1, status: 1, isDeleted: 1 });
+boardingSchema.index({ type: 1, status: 1, isDeleted: 1 });
+boardingSchema.index({ price: 1, status: 1, isDeleted: 1 });
+boardingSchema.index({ owner: 1, isDeleted: 1, createdAt: -1 });
 boardingSchema.index({ "location": "2dsphere" });
+boardingSchema.index({ 
+  boardingName: "text", 
+  description: "text", 
+  address: "text", 
+  city: "text" 
+}, { 
+  weights: { boardingName: 10, city: 5, address: 3, description: 1 },
+  name: "boarding_text_search_index" 
+});
 
 const Boarding = mongoose.model("Boarding", boardingSchema);
 

@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import compression from "compression";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import boardingRoutes from "./routes/boardingRoutes.js";
@@ -16,8 +17,20 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// High-performance gzip/deflate compression for all responses
+app.use(compression({
+  filter: (req, res) => {
+    if (req.headers["x-no-compression"]) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  threshold: 1024, // only compress responses that are larger than 1kb
+}));
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // Routes
 app.use("/api/auth", authRoutes);

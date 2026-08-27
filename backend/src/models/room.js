@@ -61,8 +61,9 @@ const roomSchema = new mongoose.Schema(
   }
 );
 
-roomSchema.index({ boarding: 1 });
-roomSchema.index({ available: 1 });
-roomSchema.index({ isDeleted: 1 });
+// High-Performance Query & Aggregation Indexes
+roomSchema.index({ boarding: 1, isDeleted: 1, available: 1 });
+roomSchema.index({ boarding: 1, price: 1 });
+roomSchema.index({ available: 1, isDeleted: 1 });
 
 export default mongoose.model("Room", roomSchema);

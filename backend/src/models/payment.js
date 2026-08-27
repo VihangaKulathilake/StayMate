@@ -76,6 +76,7 @@ const paymentSchema = new mongoose.Schema(
     transactionId: {
       type: String,
       unique: true,
+      sparse: true,
     },
   },
   {
@@ -83,11 +84,11 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-paymentSchema.index({ booking: 1 });
-paymentSchema.index({ user: 1 });
-paymentSchema.index({ boarding: 1 });
-paymentSchema.index({ status: 1 });
-paymentSchema.index({ dueDate: 1 });
+// High-Performance Ledger & Query Indexes
+paymentSchema.index({ user: 1, status: 1, dueDate: 1 });
+paymentSchema.index({ boarding: 1, status: 1, createdAt: -1 });
+paymentSchema.index({ booking: 1, status: 1 });
+paymentSchema.index({ status: 1, dueDate: 1 });
 
 const Payment = mongoose.model("Payment", paymentSchema);
 
