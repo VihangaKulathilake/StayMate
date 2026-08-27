@@ -50,10 +50,10 @@ const Logo = ({
         </div>
       )}
       {!hideText && (
-        <span className={cn("font-bold tracking-tight whitespace-nowrap flex items-end", currentSize.text, currentVariant.text, textClassName)}>
-          StayMate
+        <span className={cn("font-display font-black tracking-tight whitespace-nowrap flex items-baseline", currentSize.text, currentVariant.text, textClassName)}>
+          Stay<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Mate</span>
           {suffix && (
-            <span className="font-normal opacity-70 ml-1.5 text-[0.6em] uppercase tracking-widest mb-0.5">
+            <span className="font-sans font-black text-indigo-600 ml-2 text-[0.5em] px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100 uppercase tracking-widest self-center">
               {suffix}
             </span>
           )}

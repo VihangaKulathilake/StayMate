@@ -8,6 +8,13 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                display: ['Outfit', '"Plus Jakarta Sans"', 'sans-serif'],
+                heading: ['Outfit', 'sans-serif'],
+                accent: ['"Space Grotesk"', 'sans-serif'],
+                mono: ['"Space Mono"', 'monospace'],
+            },
             colors: {
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",

@@ -55,21 +55,77 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-background text-foreground tracking-[-0.01em];
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply tracking-tight;
   }
 }
 
 @layer components {
+  /* Brand Typography */
   .brand-logo {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: inherit;
-    text-shadow: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.04em;
   }
 
   .brand-logo-dark {
     @apply text-primary;
+  }
+
+  /* Creative Gradient Headings */
+  .gradient-text-primary {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600;
+  }
+
+  .gradient-text-amber {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500;
+  }
+
+  .gradient-text-emerald {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500;
+  }
+
+  .gradient-text-dark {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950;
+  }
+
+  /* Glassmorphic Surfaces */
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/40;
+  }
+
+  .glass-panel-dark {
+    @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .glass-pill {
+    @apply bg-white/60 backdrop-blur-md border border-white/30 text-slate-700 shadow-sm;
+  }
+
+  /* Interactive Creative Cards */
+  .interactive-card {
+    @apply transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10;
+  }
+
+  .glow-on-hover {
+    @apply relative overflow-hidden transition-all duration-300;
+  }
+  .glow-on-hover:hover::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(168, 85, 247, 0.4));
+    z-index: -1;
+    filter: blur(8px);
   }
 
   .navbar {
@@ -77,7 +133,7 @@
   }
 
   .navbar-nav .nav-link {
-    @apply relative transition-all duration-300 rounded-full mx-1;
+    @apply relative transition-all duration-300 rounded-full mx-1 font-medium;
   }
 
   .navbar-nav .nav-link:hover,
@@ -86,17 +142,17 @@
   }
 
   .dropdown-menu {
-    animation: slideDown 0.3s ease forwards;
+    animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     transform-origin: top center;
     @apply border-none shadow-xl;
   }
 
   .navbar-search {
-    @apply transition-all duration-300 w-48;
+    @apply transition-all duration-300 w-48 font-sans;
   }
 
   .navbar-search:focus {
-    @apply w-72 ring-2 ring-white/20;
+    @apply w-72 ring-2 ring-indigo-500/30;
   }
 
   .hover-card {
@@ -116,12 +172,12 @@
   }
 
   .animate-fade-in-up {
-    animation: fadeInUp 0.8s ease-out forwards;
-    @apply opacity-0 translate-y-5;
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    @apply opacity-0 translate-y-4;
   }
 
   .animate-fade-in {
-    animation: fadeIn 1s ease-out forwards;
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     @apply opacity-0;
   }
 
@@ -134,15 +190,33 @@
   }
 }
 
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px) scale(0.98);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -160,27 +234,21 @@
 }
 
 @keyframes float {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0px);
   }
-
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-12px);
   }
 }
 
 @keyframes pulse {
-
-  0%,
-  100% {
-    transform: scale(0.95);
-    opacity: 0.1;
+  0%, 100% {
+    transform: scale(0.96);
+    opacity: 0.15;
   }
-
   50% {
-    transform: scale(1.05);
-    opacity: 0.2;
+    transform: scale(1.04);
+    opacity: 0.3;
   }
 }
