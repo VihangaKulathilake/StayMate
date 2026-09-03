@@ -13,13 +13,15 @@ import {
   Building2,
   UserCircle2,
 } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { registerUser } from "@/api/auth";
+import { registerUser, googleLogin } from "@/api/auth";
 import { REGISTER_MESSAGES, getRegisterErrorMessage } from "@/messages/authMessages";
 import AuthStatusMessage from "@/components/common/AuthStatusMessage";
+import { getDefaultRouteByRole } from "@/lib/auth";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/store/slices/authSlice";
 
@@ -353,23 +355,35 @@ export default function Register() {
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 rounded-xl gap-3 font-bold border-slate-100 hover:bg-slate-50 transition-all"
-              >
-                <Chrome className="w-5 h-5 text-rose-500" />
-                Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 rounded-xl gap-3 font-bold border-slate-100 hover:bg-slate-50 transition-all"
-              >
-                <Facebook className="w-5 h-5 text-blue-600 fill-blue-600" />
-                Facebook
-              </Button>
+            <motion.div variants={itemVariants} className="w-full flex justify-center min-h-[44px]">
+              <div className="w-full flex justify-center">
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    setError("");
+                    setIsSubmitting(true);
+                    try {
+                      const data = await googleLogin(credentialResponse.credential);
+                      dispatch(setCredentials({ token: data.token, user: data.user }));
+                      const userRole = data?.user?.role;
+                      const redirectPath = getDefaultRouteByRole(userRole);
+                      navigate(redirectPath, { replace: true });
+                    } catch (err) {
+                      setError(err.message || "Google Sign-Up failed");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  onError={() => {
+                    setError("Google Sign-Up failed. Please try again.");
+                  }}
+                  theme="outline"
+                  size="large"
+                  text="signup_with"
+                  shape="rectangular"
+                  width="384"
+                  logo_alignment="center"
+                />
+              </div>
             </motion.div>
 
             <motion.p variants={itemVariants} className="text-center pt-4 text-slate-500 font-medium">

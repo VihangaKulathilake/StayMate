@@ -278,8 +278,8 @@ export default function Login() {
               </div>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4">
-              <div className="flex justify-center w-full">
+            <motion.div variants={itemVariants} className="w-full flex justify-center min-h-[44px]">
+              <div className="w-full flex justify-center">
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
                     setError("");
@@ -299,7 +299,12 @@ export default function Login() {
                   onError={() => {
                     setError("Google Sign-In failed. Please try again.");
                   }}
-                  width="384px" /* Fits the container width */
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  width="384"
+                  logo_alignment="center"
                 />
               </div>
             </motion.div>
